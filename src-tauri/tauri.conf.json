@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "FolioPDF",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "identifier": "io.github.debarkak.foliopdf",
   "build": {
     "beforeDevCommand": "npm run dev",
@@ -25,6 +25,7 @@
   },
   "bundle": {
     "active": true,
+    "createUpdaterArtifacts": true,
     "targets": ["nsis", "deb", "appimage"],
     "shortDescription": "A lightweight PDF reader",
     "longDescription": "Read local PDFs with selectable text, vertical scrolling, page navigation and zoom.",
@@ -32,5 +33,12 @@
     "licenseFile": "../LICENSE",
     "resources": { "../public/THIRD-PARTY-NOTICES.txt": "THIRD-PARTY-NOTICES.txt" },
     "icon": ["icons/icon.png", "icons/icon.ico"]
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEMwMTk2NTNBRTU5NUQ5QkEKUldTNjJaWGxPbVVad09YbVNaOUdHQmJ1V0RiNE5Bc3hNa2gwWHhtY3J2K2hXOURKK0o5a0VldmkK",
+      "endpoints": ["https://github.com/debarkak/foliopdf/releases/latest/download/latest.json"],
+      "windows": { "installMode": "passive" }
+    }
   }
 }

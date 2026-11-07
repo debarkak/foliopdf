@@ -54,7 +54,20 @@
         </section>
         <div id="loading" class="loading" role="status" hidden>Opening PDF…</div>
       </main>
-      <footer class="statusbar"><span id="status" role="status" aria-live="polite">Ready</span></footer>
+      <footer class="statusbar"><span id="status" role="status" aria-live="polite">Ready</span><button id="about" aria-label="About and updates">About / Updates</button></footer>
+      <dialog id="updates-dialog" aria-labelledby="updates-title">
+        <h2 id="updates-title">FolioPDF</h2>
+        <p id="app-version"></p>
+        <p id="update-status" role="status" aria-live="polite">Check for a newer version.</p>
+        <p id="update-notes" hidden></p>
+        <progress id="update-progress" aria-label="Update download" hidden></progress>
+        <p id="update-warning" hidden>Installing closes FolioPDF and its open tabs. Your PDF files will not be changed.</p>
+        <div class="dialog-actions">
+          <button id="update-close">Close</button>
+          <button id="update-check">Check for updates</button>
+          <button id="update-action" class="primary-button" hidden>Download update</button>
+        </div>
+      </dialog>
       <dialog id="error-dialog" aria-labelledby="error-title">
         <h2 id="error-title">Couldn't open this PDF</h2>
         <p id="error-message"></p>

@@ -3,5 +3,9 @@
   "identifier": "main",
   "description": "Open and read files selected in the native file dialog.",
   "windows": ["main"],
-  "permissions": ["core:default", "dialog:allow-open", "fs:allow-read-file"]
+  "permissions": [
+    "core:default", "dialog:allow-open", "fs:allow-read-file",
+    "updater:default", "process:allow-restart",
+    { "identifier": "opener:allow-open-url", "allow": [{ "url": "https://github.com/debarkak/foliopdf/releases/latest" }] }
+  ]
 }

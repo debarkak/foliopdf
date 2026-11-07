@@ -1,6 +1,6 @@
 [package]
 name = "foliopdf"
-version = "1.0.0"
+version = "1.0.1"
 description = "A lightweight PDF reader built on PDF.js"
 authors = ["debarkak"]
 edition = "2021"
@@ -10,9 +10,13 @@ license = "Apache-2.0"
 tauri-build = { version = "2", features = [] }
 
 [dependencies]
+serde_json = "1"
 tauri = { version = "2", features = [] }
 tauri-plugin-dialog = "2"
 tauri-plugin-fs = "2"
+tauri-plugin-opener = "2"
+tauri-plugin-process = "2"
+tauri-plugin-updater = "2"
 
 [profile.release]
 codegen-units = 1

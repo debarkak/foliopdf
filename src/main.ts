@@ -1,6 +1,7 @@
 import { createElement, createIcons, BookOpen, ChevronLeft, ChevronRight, FolderOpen, Minus, Plus, X } from 'lucide';
 import 'pdfjs-dist/web/pdf_viewer.css';
 import './style.css';
+import './updates';
 import { pickPdf } from './platform';
 import { Reader, type ReaderDocument, type ReaderState } from './reader';
 
@@ -214,7 +215,7 @@ zoom.addEventListener('change', () => reader.zoom(zoom.value));
 zoomIn.addEventListener('click', () => reader.stepZoom(1));
 zoomOut.addEventListener('click', () => reader.stepZoom(-1));
 document.addEventListener('keydown', event => {
-  if (errorDialog.open || !(event.ctrlKey || event.metaKey) || event.altKey) return;
+  if (document.querySelector('dialog[open]') || !(event.ctrlKey || event.metaKey) || event.altKey) return;
   if (event.key.toLowerCase() === 'o') { event.preventDefault(); void open(); }
   if (!active || busy) return;
   if (event.key.toLowerCase() === 'w') { event.preventDefault(); void closeTab(active); }
