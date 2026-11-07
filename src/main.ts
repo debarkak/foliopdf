@@ -1,8 +1,8 @@
-import { createIcons, BookOpen, ChevronLeft, ChevronRight, FolderOpen, Minus, Plus } from 'lucide';
+import { createElement, createIcons, BookOpen, ChevronLeft, ChevronRight, FolderOpen, Minus, Plus, X } from 'lucide';
 import 'pdfjs-dist/web/pdf_viewer.css';
 import './style.css';
 import { pickPdf } from './platform';
-import { Reader, type ReaderState } from './reader';
+import { Reader, type ReaderDocument, type ReaderState } from './reader';
 
 function element<T extends HTMLElement>(id: string): T {
   const value = document.getElementById(id);
@@ -25,13 +25,17 @@ const empty = element('empty-state');
 const loading = element('loading');
 const filename = element('filename');
 const errorDialog = element<HTMLDialogElement>('error-dialog');
+const tabList = element('document-tabs');
+interface Tab { id: number; name: string; document: ReaderDocument }
+const tabs: Tab[] = [];
+let active: Tab | null = null;
+let nextId = 1;
 let busy = false;
-let loaded = false;
 
 function update(state: ReaderState): void {
-  const available = state.pages > 0 && !busy;
+  const available = !!active && state.pages > 0 && !busy;
   pageNumber.value = String(state.page);
-  pageNumber.max = String(state.pages);
+  pageNumber.max = String(state.pages || 1);
   element('page-count').textContent = `/ ${state.pages}`;
   pageNumber.disabled = zoom.disabled = zoomIn.disabled = zoomOut.disabled = !available;
   previous.disabled = !available || state.page <= 1;
@@ -48,6 +52,62 @@ function update(state: ReaderState): void {
 
 const reader = new Reader(container, update);
 
+function renderTabs(): void {
+  element('tabs-bar').hidden = tabs.length === 0;
+  tabList.replaceChildren();
+  for (const tab of tabs) {
+    const group = document.createElement('div');
+    group.className = `document-tab${tab === active ? ' is-active' : ''}`;
+    const button = document.createElement('button');
+    button.id = `tab-${tab.id}`;
+    button.dataset.tab = String(tab.id);
+    button.setAttribute('role', 'tab');
+    button.setAttribute('aria-selected', String(tab === active));
+    button.setAttribute('aria-controls', 'viewer-container');
+    button.tabIndex = tab === active ? 0 : -1;
+    button.textContent = button.title = tab.name;
+    button.disabled = busy;
+    const close = document.createElement('button');
+    close.dataset.close = String(tab.id);
+    close.className = 'close-tab';
+    close.setAttribute('aria-label', `Close ${tab.name}`);
+    close.title = 'Close tab (Ctrl+W)';
+    close.append(createElement(X, { 'aria-hidden': 'true' }));
+    close.disabled = busy;
+    group.append(button, close);
+    tabList.append(group);
+  }
+  if (active) {
+    container.setAttribute('aria-labelledby', `tab-${active.id}`);
+    tabList.querySelector(`#tab-${active.id}`)?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  } else container.removeAttribute('aria-labelledby');
+}
+
+function render(): void {
+  filename.textContent = filename.title = active?.name || 'FolioPDF';
+  filename.classList.toggle('sr-only', !!active);
+  document.title = active ? `${active.name} — FolioPDF` : 'FolioPDF';
+  container.hidden = !active;
+  empty.hidden = !!active;
+  if (!active) status.textContent = 'Ready';
+  update(reader.state);
+  renderTabs();
+}
+
+function setBusy(value: boolean): void {
+  busy = value;
+  openButton.disabled = emptyButton.disabled = value;
+  element('document-area').setAttribute('aria-busy', String(value));
+  update(reader.state);
+  renderTabs();
+}
+
+function report(error: unknown): void {
+  console.error('Could not open PDF:', error);
+  element('error-message').textContent = errorMessage(error);
+  if (!errorDialog.open) errorDialog.showModal();
+}
+
 function errorMessage(error: unknown): string {
   if (error instanceof Error) {
     if (error.name === 'PasswordException') return 'This PDF needs a password. Password-protected files are not supported yet.';
@@ -58,40 +118,86 @@ function errorMessage(error: unknown): string {
 
 async function open(): Promise<void> {
   if (busy) return;
-  busy = true;
-  openButton.disabled = emptyButton.disabled = true;
+  setBusy(true);
+  const previousTab = active;
+  let pending: ReaderDocument | null = null;
   try {
     const file = await pickPdf(element<HTMLInputElement>('file-input'));
     if (!file) return;
-    loaded = false;
-    filename.textContent = 'FolioPDF';
-    document.title = 'FolioPDF';
     status.textContent = 'Opening PDF…';
-    element('document-area').setAttribute('aria-busy', 'true');
     loading.hidden = false;
     empty.hidden = true;
     container.hidden = false;
-    update({ page: 1, pages: 0, scale: 1, scaleValue: 'page-width' });
-    await reader.open(file.data);
-    loaded = true;
-    filename.textContent = file.name;
-    filename.title = file.name;
-    document.title = `${file.name} — FolioPDF`;
+    pending = await reader.load(file.data);
+    await reader.show(pending);
+    active = { id: nextId++, name: file.name, document: pending };
+    tabs.push(active);
+    pending = null;
   } catch (error) {
-    console.error('Could not open PDF:', error);
-    element('error-message').textContent = errorMessage(error);
-    if (!errorDialog.open) errorDialog.showModal();
-    status.textContent = loaded ? 'Could not open file' : 'No document open';
+    if (pending) {
+      await reader.close(pending);
+      await reader.show(previousTab?.document || null);
+    }
+    report(error);
   } finally {
-    busy = false;
-    openButton.disabled = emptyButton.disabled = false;
     loading.hidden = true;
-    container.hidden = !loaded;
-    empty.hidden = loaded;
-    element('document-area').setAttribute('aria-busy', 'false');
-    update(reader.state);
+    setBusy(false);
+    render();
   }
 }
+
+async function activate(tab: Tab): Promise<void> {
+  if (busy) return;
+  const previousTab = active;
+  setBusy(true);
+  try {
+    if (tab !== active) await reader.show(tab.document);
+    active = tab;
+  } catch (error) {
+    await reader.show(previousTab?.document || null);
+    report(error);
+  } finally {
+    setBusy(false);
+    render();
+    tabList.querySelector<HTMLButtonElement>(`#tab-${active?.id}`)?.focus();
+  }
+}
+
+async function closeTab(tab: Tab): Promise<void> {
+  if (busy) return;
+  setBusy(true);
+  try {
+    const index = tabs.indexOf(tab);
+    if (tab === active) {
+      const neighbor = tabs[index + 1] || tabs[index - 1] || null;
+      await reader.show(neighbor?.document || null);
+      active = neighbor;
+    }
+    tabs.splice(index, 1);
+    await reader.close(tab.document);
+  } catch (error) {
+    report(error);
+  } finally {
+    setBusy(false);
+    render();
+    if (active) tabList.querySelector<HTMLButtonElement>(`#tab-${active.id}`)?.focus();
+    else openButton.focus();
+  }
+}
+
+tabList.addEventListener('click', event => {
+  const button = (event.target as HTMLElement).closest<HTMLButtonElement>('button');
+  if (!button) return;
+  const tab = tabs.find(tab => tab.id === Number(button.dataset.tab || button.dataset.close));
+  if (tab) void (button.dataset.close ? closeTab(tab) : activate(tab));
+});
+tabList.addEventListener('keydown', event => {
+  if (busy || !active || !['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+  event.preventDefault();
+  const index = event.key === 'Home' ? 0 : event.key === 'End' ? tabs.length - 1
+    : (tabs.indexOf(active) + (event.key === 'ArrowRight' ? 1 : -1) + tabs.length) % tabs.length;
+  void activate(tabs[index]);
+});
 
 openButton.addEventListener('click', open);
 emptyButton.addEventListener('click', open);
@@ -110,7 +216,12 @@ zoomOut.addEventListener('click', () => reader.stepZoom(-1));
 document.addEventListener('keydown', event => {
   if (errorDialog.open || !(event.ctrlKey || event.metaKey) || event.altKey) return;
   if (event.key.toLowerCase() === 'o') { event.preventDefault(); void open(); }
-  if (!loaded || busy) return;
+  if (!active || busy) return;
+  if (event.key.toLowerCase() === 'w') { event.preventDefault(); void closeTab(active); }
+  if (event.key === 'Tab') {
+    event.preventDefault();
+    void activate(tabs[(tabs.indexOf(active) + (event.shiftKey ? -1 : 1) + tabs.length) % tabs.length]);
+  }
   if (event.key === '+' || event.key === '=') { event.preventDefault(); reader.stepZoom(1); }
   if (event.key === '-') { event.preventDefault(); reader.stepZoom(-1); }
   if (event.key === '0') { event.preventDefault(); reader.zoom('1'); }

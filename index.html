@@ -8,6 +8,9 @@
   </head>
   <body>
     <div id="app">
+      <div id="tabs-bar" class="tabs-bar" hidden>
+        <div id="document-tabs" class="document-tabs" role="tablist" aria-label="Open documents"></div>
+      </div>
       <header class="toolbar" aria-label="Reader toolbar">
         <div class="file-tools">
           <button id="open" class="open-button" title="Open PDF (Ctrl+O)">
@@ -39,7 +42,7 @@
         </div>
       </header>
       <main id="document-area" aria-label="PDF document" aria-busy="false">
-        <div id="viewer-container" hidden><div id="viewer" class="pdfViewer"></div></div>
+        <div id="viewer-container" role="tabpanel" hidden><div id="viewer" class="pdfViewer"></div></div>
         <section id="empty-state" class="empty-state">
           <div class="empty-content">
             <div class="book-symbol" aria-hidden="true"><i data-lucide="book-open"></i></div>

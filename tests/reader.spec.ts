@@ -78,7 +78,7 @@ test('reports invalid files and can open another PDF afterward', async ({ page }
   await expect(page.locator('#filename')).toHaveText('reader.pdf');
 });
 
-test('replaces the current document and resets its page and zoom', async ({ page }) => {
+test('opens another document in a new tab with its own view', async ({ page }) => {
   await openPdf(page);
   await expect(page.locator('#next')).toBeEnabled();
   await page.locator('#next').click();
@@ -88,6 +88,10 @@ test('replaces the current document and resets its page and zoom', async ({ page
   await expect(page.locator('#page-number')).toHaveValue('1');
   await expect(page.locator('#zoom')).toHaveValue('page-width');
   await expect(page.locator('.page')).toHaveCount(3);
+  await expect(page.getByRole('tab')).toHaveCount(2);
+  await page.getByRole('tab', { name: 'reader.pdf', exact: true }).click();
+  await expect(page.locator('#page-number')).toHaveValue('2');
+  await expect(page.locator('#zoom')).toHaveValue('2');
 });
 
 test('keeps the toolbar inside a small window', async ({ page }) => {
@@ -111,13 +115,14 @@ test('keeps the current document when the file picker is cancelled', async ({ pa
   await expect(page.locator('#zoom')).toHaveValue('1.5');
 });
 
-test('clears stale pages after an invalid replacement', async ({ page }) => {
+test('keeps the current tab after an invalid new document', async ({ page }) => {
   await openPdf(page);
   await expect(page.locator('#next')).toBeEnabled();
   await openPdf(page, 'broken.pdf', Buffer.from('not a PDF'));
   await expect(page.getByRole('dialog')).toBeVisible();
   await page.getByRole('button', { name: 'Close', exact: true }).click();
-  await expect(page.locator('#empty-state')).toBeVisible();
-  await expect(page.locator('#viewer .page')).toHaveCount(0);
-  await expect(page.locator('#next')).toBeDisabled();
+  await expect(page.locator('#filename')).toHaveText('reader.pdf');
+  await expect(page.getByRole('tab')).toHaveCount(1);
+  await expect(page.locator('#viewer .page')).toHaveCount(3);
+  await expect(page.locator('#next')).toBeEnabled();
 });

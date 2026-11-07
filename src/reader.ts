@@ -3,7 +3,9 @@ import {
   AnnotationMode,
   getDocument,
   GlobalWorkerOptions,
+  PDFWorker,
   type PDFDocumentLoadingTask,
+  type PDFDocumentProxy,
 } from 'pdfjs-dist';
 import { EventBus, PDFLinkService, PDFViewer, ScrollMode } from 'pdfjs-dist/web/pdf_viewer.mjs';
 import workerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
@@ -17,14 +19,22 @@ export interface ReaderState {
   scaleValue: string;
 }
 
+export interface ReaderDocument {
+  task: PDFDocumentLoadingTask;
+  pdf: PDFDocumentProxy;
+  view?: { page: number; scale: string; point: number[] };
+}
+
 export class Reader {
   private readonly events = new EventBus();
   private readonly links = new PDFLinkService();
   private readonly viewer: PDFViewer;
-  private task: PDFDocumentLoadingTask | null = null;
-  private generation = 0;
+  private readonly worker = new PDFWorker();
+  private active: ReaderDocument | null = null;
+  private readonly container: HTMLDivElement;
 
   constructor(container: HTMLDivElement, onChange: (state: ReaderState) => void) {
+    this.container = container;
     this.links.externalLinkEnabled = false;
     this.viewer = new PDFViewer({
       container,
@@ -40,10 +50,6 @@ export class Reader {
     const publish = () => onChange(this.state);
     this.events.on('pagechanging', publish);
     this.events.on('scalechanging', publish);
-    this.events.on('pagesinit', () => {
-      this.viewer.currentScaleValue = 'page-width';
-      publish();
-    });
     new ResizeObserver(() => {
       const value = this.viewer.currentScaleValue;
       if (value === 'page-width' || value === 'page-fit') this.viewer.currentScaleValue = value;
@@ -59,38 +65,67 @@ export class Reader {
     };
   }
 
-  async open(data: Uint8Array): Promise<void> {
-    const generation = ++this.generation;
-    const old = this.task;
-    this.task = null;
-    this.viewer.setDocument(null);
-    this.links.setDocument(null);
-    await old?.destroy();
-    if (generation !== this.generation) return;
+  async load(data: Uint8Array): Promise<ReaderDocument> {
     const assets = new URL('/pdfjs/', window.location.href).href;
     const task = getDocument({
       data,
+      worker: this.worker,
       cMapUrl: `${assets}cmaps/`,
       cMapPacked: true,
       standardFontDataUrl: `${assets}standard_fonts/`,
       wasmUrl: `${assets}wasm/`,
     });
-    this.task = task;
     try {
-      const document = await task.promise;
-      if (generation !== this.generation) { await task.destroy(); return; }
-      this.links.setDocument(document);
-      this.viewer.setDocument(document);
-      await this.viewer.firstPagePromise;
+      return { task, pdf: await task.promise };
     } catch (error) {
-      if (this.task === task) {
-        this.task = null;
-        this.viewer.setDocument(null);
-        this.links.setDocument(null);
-      }
       await task.destroy();
       throw error;
     }
+  }
+
+  async show(document: ReaderDocument | null): Promise<void> {
+    if (this.active) {
+      const page = this.viewer.getPageView(this.state.page - 1);
+      if (page) this.active.view = {
+        page: this.state.page,
+        scale: this.state.scaleValue,
+        point: page.getPagePoint(this.container.scrollLeft - page.div.offsetLeft, this.container.scrollTop - page.div.offsetTop),
+      };
+    }
+    // Detaching destroys the old page views/canvases, but keeps its loaded PDF.
+    this.viewer.setDocument(null);
+    this.links.setDocument(null);
+    this.active = document;
+    if (!document) return;
+
+    let initialized: () => void;
+    const ready = new Promise<void>(resolve => {
+      initialized = () => {
+        const view = document.view;
+        this.viewer.currentScaleValue = view?.scale || 'page-width';
+        if (view) this.viewer.scrollPageIntoView({
+          pageNumber: view.page,
+          destArray: [null, { name: 'XYZ' }, ...view.point, null],
+          ignoreDestinationZoom: true,
+          allowNegativeOffset: true,
+        });
+        resolve();
+      };
+      this.events.on('pagesinit', initialized);
+    });
+    try {
+      this.links.setDocument(document.pdf);
+      this.viewer.setDocument(document.pdf);
+      await this.viewer.firstPagePromise;
+      await ready;
+    } finally {
+      this.events.off('pagesinit', initialized!);
+    }
+  }
+
+  async close(document: ReaderDocument): Promise<void> {
+    if (this.active === document) await this.show(null);
+    await document.task.destroy();
   }
 
   goTo(page: number): void {

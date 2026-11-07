@@ -1,12 +1,12 @@
 // A small, original PDF keeps reader tests offline and reproducible.
-export function makePdf() {
+export function makePdf(title = 'Folio reader', pages = 3) {
   const objects = [
     '<< /Type /Catalog /Pages 2 0 R >>',
-    '<< /Type /Pages /Kids [4 0 R 6 0 R 8 0 R] /Count 3 >>',
+    `<< /Type /Pages /Kids [${Array.from({ length: pages }, (_, i) => `${4 + i * 2} 0 R`).join(' ')}] /Count ${pages} >>`,
     '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>',
   ];
-  for (let page = 1; page <= 3; page++) {
-    const stream = `BT /F1 24 Tf 72 700 Td (Folio reader page ${page}) Tj 0 -44 Td /F1 14 Tf (Selectable text for the first reader stage.) Tj ET`;
+  for (let page = 1; page <= pages; page++) {
+    const stream = `BT /F1 24 Tf 72 700 Td (${title} page ${page}) Tj 0 -44 Td /F1 14 Tf (Selectable text for the first reader stage.) Tj ET`;
     const content = objects.length + 2;
     objects.push(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R >> >> /Contents ${content} 0 R >>`);
     objects.push(`<< /Length ${Buffer.byteLength(stream)} >>\nstream\n${stream}\nendstream`);

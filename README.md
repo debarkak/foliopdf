@@ -4,6 +4,9 @@ a lightweight PDF reader built on Mozilla's PDF.js, Tauri and TypeScript.
 
 open local PDFs, select text, scroll through pages and adjust the zoom.
 
+each document opens in a tab and keeps its page, zoom and reading position.
+use Ctrl+Tab / Ctrl+Shift+Tab to switch and Ctrl+W to close.
+
 ## download
 
 get the latest build from [GitHub Releases](https://github.com/debarkak/foliopdf/releases).
@@ -61,8 +64,8 @@ need separate desktop checks.
 
 ## current limits
 
-one document at a time. password-protected PDFs, external links, saving and editing
-are not supported yet. tabs are planned for later. macOS has not been tested.
+password-protected PDFs, external links, saving and editing are not supported yet.
+macOS has not been tested.
 
 ## credits
 
