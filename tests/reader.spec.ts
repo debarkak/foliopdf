@@ -101,6 +101,7 @@ test('keeps the current document when the file picker is cancelled', async ({ pa
   await expect(page.locator('#next')).toBeEnabled();
   await page.locator('#next').click();
   await page.locator('#zoom').selectOption('1.5');
+  await expect(page.locator('#page-number')).toHaveValue('2');
   const chooser = page.waitForEvent('filechooser');
   await page.getByRole('button', { name: 'Open', exact: true }).click();
   await (await chooser).setFiles([]);

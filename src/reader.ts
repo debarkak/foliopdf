@@ -100,7 +100,10 @@ export class Reader {
   }
 
   zoom(value: string): void {
+    const page = this.viewer.currentPageNumber;
     this.viewer.currentScaleValue = value;
+    // A pending scroll update can leave PDF.js with the previous page's anchor.
+    if (this.viewer.currentPageNumber !== page) this.viewer.currentPageNumber = page;
   }
 
   stepZoom(direction: 1 | -1): void {
@@ -109,6 +112,6 @@ export class Reader {
     const next = direction === 1
       ? steps.find(value => value > current + 0.01) ?? 4
       : [...steps].reverse().find(value => value < current - 0.01) ?? 0.25;
-    this.viewer.currentScaleValue = String(next);
+    this.zoom(String(next));
   }
 }
