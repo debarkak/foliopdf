@@ -3,7 +3,7 @@ import { spawn, execFileSync } from 'node:child_process';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { homedir, tmpdir } from 'node:os';
 import { resolve, join } from 'node:path';
-import { makePdf } from '../tests/pdf-fixture.ts';
+import { makePdf } from '../tests/pdf-fixture.mjs';
 
 const application = resolve(process.argv[2] || 'src-tauri/target/release/foliopdf');
 const output = resolve(process.argv[3] || join(tmpdir(), 'foliopdf-smoke'));

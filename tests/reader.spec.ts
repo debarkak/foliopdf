@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { makePdf } from './pdf-fixture';
+import { makePdf } from './pdf-fixture.mjs';
 
 async function openPdf(page: Page, name = 'reader.pdf', buffer = makePdf()) {
   const chooser = page.waitForEvent('filechooser');

@@ -1,5 +1,5 @@
 // A small, original PDF keeps reader tests offline and reproducible.
-export function makePdf(): Buffer {
+export function makePdf() {
   const objects = [
     '<< /Type /Catalog /Pages 2 0 R >>',
     '<< /Type /Pages /Kids [4 0 R 6 0 R 8 0 R] /Count 3 >>',
