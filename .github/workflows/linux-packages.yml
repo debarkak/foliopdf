@@ -35,7 +35,7 @@ jobs:
       - name: Check the native Linux reader
         run: |
           cargo install tauri-driver --locked
-          xvfb-run -a dbus-run-session -- node scripts/smoke-linux.mjs src-tauri/target/release/foliopdf "$RUNNER_TEMP/reader-qa"
+          xvfb-run -a dbus-run-session -- node --experimental-strip-types scripts/smoke-linux.mjs src-tauri/target/release/foliopdf "$RUNNER_TEMP/reader-qa"
       - name: Prepare traditional archive
         run: |
           mkdir -p "$RUNNER_TEMP/FolioPDF-1.0.0-linux-x86_64"
