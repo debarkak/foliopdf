@@ -64,8 +64,8 @@ async function open(): Promise<void> {
     const file = await pickPdf(element<HTMLInputElement>('file-input'));
     if (!file) return;
     loaded = false;
-    filename.textContent = 'foliopdf';
-    document.title = 'foliopdf';
+    filename.textContent = 'FolioPDF';
+    document.title = 'FolioPDF';
     status.textContent = 'Opening PDF…';
     element('document-area').setAttribute('aria-busy', 'true');
     loading.hidden = false;
@@ -76,7 +76,7 @@ async function open(): Promise<void> {
     loaded = true;
     filename.textContent = file.name;
     filename.title = file.name;
-    document.title = `${file.name} — foliopdf`;
+    document.title = `${file.name} — FolioPDF`;
   } catch (error) {
     console.error('Could not open PDF:', error);
     element('error-message').textContent = errorMessage(error);
