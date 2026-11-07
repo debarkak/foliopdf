@@ -1,6 +1,6 @@
 [package]
 name = "foliopdf"
-version = "0.1.0"
+version = "1.0.0"
 description = "A lightweight PDF reader built on PDF.js"
 authors = ["debarkak"]
 edition = "2021"

@@ -1,6 +1,7 @@
 node_modules/
 dist/
 public/pdfjs/
+public/THIRD-PARTY-NOTICES.txt
 src-tauri/target/
 src-tauri/gen/schemas/
 test-results/
