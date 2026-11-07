@@ -27,6 +27,17 @@ with WSLg. they are not guaranteed to work on every distribution.
 - vertical scrolling and page navigation
 - percentage zoom, actual size, fit width and fit page
 - system light and dark appearance
+- manual update checks from About / Updates
+
+## updates
+
+Windows installer and Linux AppImage builds can download signed updates from
+GitHub Releases. open About / Updates, check for a new version, then download it.
+installation requires a separate confirmation and closes the current tabs.
+portable Windows, Debian and tar archive builds offer the release download page.
+there are no background update checks.
+
+version 1.0 needs a manual upgrade to 1.0.1 to gain the updater.
 
 ## development
 
@@ -58,9 +69,29 @@ npx playwright install chromium
 npm test
 ```
 
-the browser tests cover rendering, text selection, navigation, zoom, document
-replacement and invalid-file recovery. native file dialogs and WebView rendering
+the browser tests cover rendering, text selection, navigation, zoom, tabs,
+invalid-file recovery and the update dialog. native file dialogs and WebView rendering
 need separate desktop checks.
+
+## preparing updates
+
+the packaging workflows need `TAURI_SIGNING_PRIVATE_KEY` and, if the key is
+encrypted, `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` as repository secrets. keep a
+secure backup of the signing key outside the repository. the app embeds only
+the matching public key. update signatures are separate from Windows code signing.
+
+build Windows and Linux packages from the same version and commit. after collecting
+the installer, AppImage and their adjacent `.sig` files, generate the update feed:
+
+```sh
+node scripts/update-manifest.mjs output path/to/FolioPDF-setup.exe path/to/FolioPDF.AppImage release-notes.txt
+```
+
+the output directory must already exist. upload the packages and signatures to
+the matching `v<version>` GitHub release, and upload `output/latest.json` last,
+after checking both downloads. its URLs use the exact package filenames.
+publish only after an actual upgrade has been checked on Windows and Linux.
+never publish manifests from local test builds.
 
 ## current limits
 

@@ -31,6 +31,9 @@ jobs:
           npx playwright install --with-deps chromium
           npm test
       - name: Build Debian and AppImage packages
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         run: npm run tauri build -- --bundles deb,appimage
       - name: Check the native Linux reader
         run: |
@@ -38,14 +41,17 @@ jobs:
           xvfb-run -a dbus-run-session -- node scripts/smoke-linux.mjs src-tauri/target/release/foliopdf "$RUNNER_TEMP/reader-qa"
       - name: Prepare traditional archive
         run: |
-          mkdir -p "$RUNNER_TEMP/FolioPDF-1.0.0-linux-x86_64"
-          cp src-tauri/target/release/foliopdf LICENSE README.md public/THIRD-PARTY-NOTICES.txt "$RUNNER_TEMP/FolioPDF-1.0.0-linux-x86_64/"
-          tar -C "$RUNNER_TEMP" -czf src-tauri/target/release/FolioPDF-1.0.0-linux-x86_64.tar.gz FolioPDF-1.0.0-linux-x86_64
+          version=$(node -p 'require("./package.json").version')
+          directory="FolioPDF-$version-linux-x86_64"
+          mkdir -p "$RUNNER_TEMP/$directory"
+          cp src-tauri/target/release/foliopdf LICENSE README.md public/THIRD-PARTY-NOTICES.txt "$RUNNER_TEMP/$directory/"
+          tar -C "$RUNNER_TEMP" -czf "src-tauri/target/release/$directory.tar.gz" "$directory"
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: linux-packages
           path: |
             src-tauri/target/release/bundle/deb/*.deb
             src-tauri/target/release/bundle/appimage/*.AppImage
-            src-tauri/target/release/FolioPDF-1.0.0-linux-x86_64.tar.gz
+            src-tauri/target/release/bundle/appimage/*.sig
+            src-tauri/target/release/FolioPDF-*-linux-x86_64.tar.gz
             ${{ runner.temp }}/reader-qa/reader.png
