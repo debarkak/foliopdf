@@ -40,11 +40,12 @@ try {
   let dialog;
   await until(async () => {
     try {
-      dialog = execFileSync('xdotool', ['search', '--name', '^Open PDF$'], { encoding: 'utf8' }).trim().split('\n').at(-1);
-      return !!dialog;
+      dialog = execFileSync('xdotool', ['search', '--onlyvisible', '--name', '^Open PDF$'], { encoding: 'utf8' }).trim().split('\n').at(-1);
+      if (!dialog) return false;
+      execFileSync('xdotool', ['windowfocus', '--sync', dialog], { stdio: 'ignore' });
+      return true;
     } catch { return false; }
   }, 'native file dialog');
-  execFileSync('xdotool', ['windowfocus', '--sync', dialog]);
   execFileSync('xdotool', ['key', '--window', dialog, 'ctrl+l']);
   await pause(300);
   execFileSync('xdotool', ['type', '--window', dialog, '--clearmodifiers', sample]);
