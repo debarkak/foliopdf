@@ -13,32 +13,32 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
-          ref: v1.0.10
+          ref: v1.0.11
       - name: Collect and publish release packages
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p /tmp/artifacts/linux /tmp/artifacts/windows /tmp/release
-          gh run download 42481522933 --repo "$GITHUB_REPOSITORY" --name linux-packages --dir /tmp/artifacts/linux
-          gh run download 42481531065 --repo "$GITHUB_REPOSITORY" --name windows-packages --dir /tmp/artifacts/windows
-          names=(FolioPDF_1.0.10_x64-setup.exe FolioPDF-1.0.10-windows-x64.zip FolioPDF_1.0.10_amd64.deb FolioPDF_1.0.10_amd64.AppImage FolioPDF-1.0.10-linux-x86_64.tar.gz FolioPDF_1.0.10_x64-setup.exe.sig FolioPDF_1.0.10_amd64.AppImage.sig)
+          gh run download 42485059236 --repo "$GITHUB_REPOSITORY" --name linux-packages --dir /tmp/artifacts/linux
+          gh run download 42485045757 --repo "$GITHUB_REPOSITORY" --name windows-packages --dir /tmp/artifacts/windows
+          names=(FolioPDF_1.0.11_x64-setup.exe FolioPDF-1.0.11-windows-x64.zip FolioPDF_1.0.11_amd64.deb FolioPDF_1.0.11_amd64.AppImage FolioPDF-1.0.11-linux-x86_64.tar.gz FolioPDF_1.0.11_x64-setup.exe.sig FolioPDF_1.0.11_amd64.AppImage.sig)
           for name in "${names[@]}"; do
             mapfile -t found < <(find /tmp/artifacts -type f -name "$name")
             test "${#found[@]}" -eq 1
             cp "${found[0]}" /tmp/release/
           done
-          printf '%s\n' 'subtle interface motion and matching system control colors.' > /tmp/update-notes.txt
-          printf "%s\n" "## what's new" '' '- subtle motion for dialogs and tabs' '- animations respect reduced-motion settings' '- controls use the selected accent color' '' 'Windows setup and Linux AppImage can update from Settings. other builds can be downloaded below.' > /tmp/release-notes.md
-          node scripts/update-manifest.mjs /tmp/release /tmp/release/FolioPDF_1.0.10_x64-setup.exe /tmp/release/FolioPDF_1.0.10_amd64.AppImage /tmp/update-notes.txt
+          printf '%s\n' 'add and edit free text annotations, then save an edited copy.' > /tmp/update-notes.txt
+          printf "%s\n" "## what's new" '' '- add and edit free text annotations' '- save changes as a separate PDF copy' '' 'Windows setup and Linux AppImage can update from Settings. other builds can be downloaded below.' > /tmp/release-notes.md
+          node scripts/update-manifest.mjs /tmp/release /tmp/release/FolioPDF_1.0.11_x64-setup.exe /tmp/release/FolioPDF_1.0.11_amd64.AppImage /tmp/update-notes.txt
           cd /tmp/release
           sha256sum "${names[@]}" latest.json > SHA256SUMS.txt
-          gh release create v1.0.10 "${names[@]}" SHA256SUMS.txt --repo "$GITHUB_REPOSITORY" --draft --verify-tag --title 'FolioPDF 1.0.10 (2026-11-08)' --notes-file /tmp/release-notes.md
+          gh release create v1.0.11 "${names[@]}" SHA256SUMS.txt --repo "$GITHUB_REPOSITORY" --draft --verify-tag --title 'FolioPDF 1.0.11 (2026-11-08)' --notes-file /tmp/release-notes.md
           verify() {
             gh api "repos/$GITHUB_REPOSITORY/releases" > /tmp/releases.json
             python3 - "$1" <<'PY'
           import hashlib, json, os, sys
           releases = json.load(open('/tmp/releases.json'))
-          release = next(r for r in releases if r['tag_name'] == 'v1.0.10')
+          release = next(r for r in releases if r['tag_name'] == 'v1.0.11')
           assert release['draft'] and len(release['assets']) == int(sys.argv[1])
           for asset in release['assets']:
               with open(asset['name'], 'rb') as f:
@@ -48,6 +48,6 @@ jobs:
           PY
           }
           verify 8
-          gh release upload v1.0.10 latest.json --repo "$GITHUB_REPOSITORY"
+          gh release upload v1.0.11 latest.json --repo "$GITHUB_REPOSITORY"
           verify 9
-          gh release edit v1.0.10 --repo "$GITHUB_REPOSITORY" --draft=false --latest
+          gh release edit v1.0.11 --repo "$GITHUB_REPOSITORY" --draft=false --latest
