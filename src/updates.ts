@@ -42,7 +42,12 @@ function showPage(page: 'home' | 'appearance' | 'about'): void {
 }
 document.querySelector<HTMLButtonElement>('#settings-appearance')!.addEventListener('click', () => { showPage('appearance'); back.focus(); });
 document.querySelector<HTMLButtonElement>('#settings-about')!.addEventListener('click', () => { showPage('about'); back.focus(); });
-back.addEventListener('click', () => { const previous = appearancePage.hidden ? '#settings-about' : '#settings-appearance'; showPage('home'); document.querySelector<HTMLButtonElement>(previous)!.focus(); });
+function returnToSettings(): void {
+  const previous = appearancePage.hidden ? '#settings-about' : '#settings-appearance';
+  showPage('home');
+  document.querySelector<HTMLButtonElement>(previous)!.focus();
+}
+back.addEventListener('click', returnToSettings);
 
 document.querySelector('#settings-open')!.addEventListener('click', async () => {
   showPage('home');
@@ -50,7 +55,12 @@ document.querySelector('#settings-open')!.addEventListener('click', async () => 
   document.querySelector('#app-version')!.textContent = `Version ${isTauri() ? await getVersion() : version}`;
 });
 close.addEventListener('click', () => dialog.close());
-dialog.addEventListener('cancel', event => { if (busy) event.preventDefault(); });
+dialog.addEventListener('cancel', event => {
+  if (busy) { event.preventDefault(); return; }
+  if (!home.hidden) return;
+  event.preventDefault();
+  returnToSettings();
+});
 dialog.addEventListener('close', () => { void release(); action.hidden = warning.hidden = progress.hidden = notes.hidden = true; status.textContent = 'Check for a newer version.'; });
 
 checkButton.addEventListener('click', async () => {

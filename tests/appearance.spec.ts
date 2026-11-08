@@ -26,3 +26,17 @@ test('invalid preferences fall back to defaults', async ({ page }) => {
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'system');
   await expect(page.locator('html')).toHaveAttribute('data-palette', 'sage');
 });
+
+
+test('Escape returns to settings before closing and restores focus', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Settings', exact: true }).click();
+  const appearance = page.getByRole('button', { name: 'Appearance Theme and color' });
+  await appearance.click();
+  await page.keyboard.press('Escape');
+  await expect(appearance).toBeFocused();
+  await expect(page.getByLabel('Theme', { exact: true })).toBeHidden();
+  await page.keyboard.press('Escape');
+  await expect(page.locator('#updates-dialog')).toBeHidden();
+  await expect(page.getByRole('button', { name: 'Settings', exact: true })).toBeFocused();
+});
