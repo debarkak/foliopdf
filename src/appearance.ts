@@ -1,6 +1,6 @@
 const key = 'foliopdf.appearance';
 const themes = ['system', 'light', 'dark'] as const;
-const palettes = ['sage', 'ocean', 'lavender', 'sand'] as const;
+const palettes = ['sage', 'ocean', 'lavender', 'sand', 'rose', 'slate', 'teal'] as const;
 type Theme = typeof themes[number];
 type Palette = typeof palettes[number];
 
