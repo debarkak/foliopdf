@@ -45,6 +45,7 @@
           <button id="layout-vertical" aria-label="Vertical pages" title="Vertical pages" aria-pressed="true" disabled><i data-lucide="rows-2" aria-hidden="true"></i></button>
           <button id="layout-horizontal" aria-label="Horizontal pages" title="Horizontal pages" aria-pressed="false" disabled><i data-lucide="columns-2" aria-hidden="true"></i></button>
         </div>
+        <button id="appearance-open" aria-label="Appearance settings" title="Appearance settings"><i data-lucide="palette" aria-hidden="true"></i></button>
       </header>
       <section id="find-bar" class="find-bar" role="search" aria-label="Find in document" hidden>
         <input id="find-query" type="search" aria-label="Find text" placeholder="Find in this PDF" autocomplete="off" spellcheck="false" />
@@ -67,6 +68,18 @@
         <div id="loading" class="loading" role="status" hidden>Opening PDF…</div>
       </main>
       <footer class="statusbar"><span id="status" role="status" aria-live="polite">Ready</span><button id="about" aria-label="About and updates">About / Updates</button></footer>
+      <dialog id="appearance-dialog" aria-labelledby="appearance-title">
+        <h2 id="appearance-title">Appearance</h2>
+        <label class="appearance-label" for="appearance-theme">Theme</label>
+        <select id="appearance-theme"><option value="system">System</option><option value="light">Light</option><option value="dark">Dark</option></select>
+        <fieldset class="palette-options"><legend>Color</legend>
+          <label><input type="radio" name="palette" value="sage" /> <span class="swatch sage"></span>Sage</label>
+          <label><input type="radio" name="palette" value="ocean" /> <span class="swatch ocean"></span>Ocean</label>
+          <label><input type="radio" name="palette" value="lavender" /> <span class="swatch lavender"></span>Lavender</label>
+          <label><input type="radio" name="palette" value="sand" /> <span class="swatch sand"></span>Sand</label>
+        </fieldset>
+        <form method="dialog"><button class="primary-button">Done</button></form>
+      </dialog>
       <dialog id="updates-dialog" aria-labelledby="updates-title">
         <h2 id="updates-title">FolioPDF</h2>
         <p id="app-version"></p>

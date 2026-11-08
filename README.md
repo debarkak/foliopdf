@@ -33,7 +33,7 @@ with WSLg. they are not guaranteed to work on every distribution.
 - horizontal page scrolling
 - document text search with match counts and highlights
 - percentage zoom, actual size, fit width and fit page
-- system light and dark appearance
+- system, light and dark themes with four color palettes
 - manual update checks from About / Updates
 
 ## updates

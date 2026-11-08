@@ -1,7 +1,8 @@
-import { createElement, createIcons, ArrowDown, ArrowUp, BookOpen, ChevronLeft, ChevronRight, Columns2, FolderOpen, Minus, Plus, Rows2, Search, X } from 'lucide';
+import { createElement, createIcons, ArrowDown, ArrowUp, BookOpen, ChevronLeft, ChevronRight, Columns2, FolderOpen, Minus, Palette, Plus, Rows2, Search, X } from 'lucide';
 import 'pdfjs-dist/web/pdf_viewer.css';
 import './style.css';
 import './updates';
+import './appearance';
 import { pickPdf } from './platform';
 import { Reader, type ReaderDocument, type ReaderState } from './reader';
 import { FindBar } from './find';
@@ -12,7 +13,7 @@ function element<T extends HTMLElement>(id: string): T {
   return value as T;
 }
 
-createIcons({ icons: { ArrowDown, ArrowUp, BookOpen, ChevronLeft, ChevronRight, Columns2, FolderOpen, Minus, Plus, Rows2, Search, X } });
+createIcons({ icons: { ArrowDown, ArrowUp, BookOpen, ChevronLeft, ChevronRight, Columns2, FolderOpen, Minus, Palette, Plus, Rows2, Search, X } });
 const container = element<HTMLDivElement>('viewer-container');
 const pageNumber = element<HTMLInputElement>('page-number');
 const zoom = element<HTMLSelectElement>('zoom');

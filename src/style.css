@@ -78,3 +78,17 @@ dialog form { display: flex; justify-content: flex-end; }
 @media (pointer: coarse) { button { min-width: 44px; min-height: 44px; } .page-label input, #zoom { height: 40px; font-size: 16px; } }
 @media (pointer: coarse) { .document-tab .close-tab { width: 44px; min-width: 44px; height: 44px; } }
 @media (prefers-reduced-motion: reduce) { button { transition: none; } }
+
+:root[data-theme="light"] { color-scheme: light; }
+:root[data-theme="dark"] { color-scheme: dark; }
+:root[data-palette="ocean"] { --surface: light-dark(#f6f9fb, #1c252b); --canvas: light-dark(#e6edf1, #151c21); --text: light-dark(#263740, #e1edf2); --muted: light-dark(#5b6d76, #adbec6); --line: light-dark(#d6e1e6, #34434a); --hover: light-dark(#dceaf0, #30434d); --accent: light-dark(#356b80, #a3cddc); --on-accent: light-dark(#fff, #173743); }
+:root[data-palette="lavender"] { --surface: light-dark(#faf8fc, #27222c); --canvas: light-dark(#eee9f1, #1c1921); --text: light-dark(#38313e, #eee6f2); --muted: light-dark(#6d6072, #c1afc8); --line: light-dark(#e4dce8, #413747); --hover: light-dark(#ece2f0, #46374c); --accent: light-dark(#745482, #d3b7dd); --on-accent: light-dark(#fff, #3c2746); }
+:root[data-palette="sand"] { --surface: light-dark(#fcfaf5, #2a261e); --canvas: light-dark(#f0ece1, #1e1b15); --text: light-dark(#3d382a, #f0e9d9); --muted: light-dark(#746b58, #c6bca7); --line: light-dark(#e6dfd0, #484031); --hover: light-dark(#efe7d4, #4a4130); --accent: light-dark(#79612f, #d9c38c); --on-accent: light-dark(#fff, #40320f); }
+.appearance-label { display: block; margin-bottom: 5px; }
+#appearance-theme { width: 100%; padding: 7px; border: 1px solid var(--line); border-radius: 6px; background: var(--canvas); }
+.palette-options { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 0; margin: 20px 0; border: 0; }
+.palette-options legend { margin-bottom: 8px; }
+.palette-options label { display: flex; align-items: center; gap: 7px; cursor: pointer; }
+.palette-options input { accent-color: var(--accent); }
+.swatch { width: 15px; height: 15px; border-radius: 50%; }
+.swatch.sage { background: #719b77; } .swatch.ocean { background: #6099ad; } .swatch.lavender { background: #aa84b8; } .swatch.sand { background: #b49a60; }
