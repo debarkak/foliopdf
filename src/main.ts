@@ -4,6 +4,13 @@ import '@fontsource-variable/open-sans';
 import './style.css';
 import './updates';
 import './appearance';
+import { isTauri, invoke } from '@tauri-apps/api/core';
+
+if (isTauri()) {
+  void invoke<boolean>('enable_backdrop').then(enabled => {
+    if (enabled) document.documentElement.dataset.backdrop = 'mica';
+  }).catch(() => { /* Keep the opaque appearance if the effect is unavailable. */ });
+}
 import { pickPdf } from './platform';
 import { Reader, type ReaderDocument, type ReaderState } from './reader';
 import { FindBar } from './find';

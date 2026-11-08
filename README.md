@@ -36,6 +36,7 @@ with WSLg. they are not guaranteed to work on every distribution.
 - document text search with match counts and highlights
 - percentage zoom, actual size, fit width and fit page
 - system, light and dark themes with seven color palettes
+- Mica on supported Windows 11 systems
 - manual update checks from Settings
 
 ## updates

@@ -133,3 +133,16 @@ h1 { font: 500 28px/1.3 'Open Sans Variable', system-ui, sans-serif; letter-spac
 :root[data-palette="slate"] { --surface: light-dark(#f8f9fb, #222428); --canvas: light-dark(#e9ebef, #191b1e); --text: light-dark(#30343b, #e6e9ef); --muted: light-dark(#626a76, #b3bbc8); --line: light-dark(#dce0e7, #383e48); --hover: light-dark(#e2e7ef, #363f4d); --accent: light-dark(#526783, #b6c8e3); --on-accent: light-dark(#fff, #253449); }
 :root[data-palette="teal"] { --surface: light-dark(#f6faf9, #1e2927); --canvas: light-dark(#e4efec, #16201e); --text: light-dark(#263c38, #e1f0eb); --muted: light-dark(#5a716b, #adc4bc); --line: light-dark(#d4e3de, #344840); --hover: light-dark(#d9ece5, #30483f); --accent: light-dark(#356e60, #a7d2c3); --on-accent: light-dark(#fff, #193d31); }
 .swatch.rose { background: #bd8794; } .swatch.slate { background: #899bb7; } .swatch.teal { background: #6aa797; }
+
+/* Only reveal the system backdrop after Windows confirms support. */
+:root[data-backdrop="mica"] { background: transparent; }
+:root[data-backdrop="mica"] .toolbar,
+:root[data-backdrop="mica"] .tabs-bar,
+:root[data-backdrop="mica"] .find-bar,
+:root[data-backdrop="mica"] .statusbar { background: color-mix(in srgb, var(--surface) 78%, transparent); }
+:root[data-backdrop="mica"] #document-area { background: var(--canvas); }
+@media (forced-colors: active) {
+  :root[data-backdrop="mica"] { background: Canvas; }
+  :root[data-backdrop="mica"] .toolbar, :root[data-backdrop="mica"] .tabs-bar,
+  :root[data-backdrop="mica"] .find-bar, :root[data-backdrop="mica"] .statusbar { background: Canvas; }
+}

@@ -1,0 +1,16 @@
+{
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "FolioPDF",
+        "width": 1080,
+        "height": 760,
+        "minWidth": 460,
+        "minHeight": 360,
+        "dragDropEnabled": false,
+        "transparent": true
+      }
+    ]
+  }
+}
