@@ -31,6 +31,7 @@ with WSLg. they are not guaranteed to work on every distribution.
 - selectable PDF text
 - vertical scrolling and page navigation
 - horizontal page scrolling
+- rotate pages while reading
 - document text search with match counts and highlights
 - percentage zoom, actual size, fit width and fit page
 - system, light and dark themes with seven color palettes

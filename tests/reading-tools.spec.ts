@@ -106,3 +106,22 @@ test('finds a match on another horizontal page and keeps a small window usable',
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   expect(await page.locator('.toolbar').evaluate(toolbar => toolbar.getBoundingClientRect().height)).toBeLessThan(110);
 });
+
+
+test('rotates pages without changing other tabs or the PDF', async ({ page }) => {
+  const rotate = page.getByRole('button', { name: 'Rotate pages clockwise' });
+  await expect(rotate).toBeDisabled();
+  await openPdf(page, 'first.pdf');
+  const pdfPage = page.locator('.page[data-page-number="1"]');
+  await expect(pdfPage).toHaveAttribute('data-page-number', '1');
+  const before = await pdfPage.evaluate(el => ({ width: el.clientWidth, height: el.clientHeight }));
+  await rotate.click();
+  await expect.poll(() => pdfPage.evaluate(el => el.clientWidth > el.clientHeight)).toBe(true);
+  await openPdf(page, 'second.pdf');
+  await expect.poll(() => pdfPage.evaluate(el => el.clientWidth < el.clientHeight)).toBe(true);
+  await page.getByRole('tab', { name: 'first.pdf', exact: true }).click();
+  await expect.poll(() => pdfPage.evaluate(el => el.clientWidth > el.clientHeight)).toBe(true);
+  for (let i = 0; i < 3; i++) await rotate.click();
+  await expect.poll(() => pdfPage.evaluate(el => el.clientWidth < el.clientHeight)).toBe(true);
+  expect(before.width).toBeLessThan(before.height);
+});

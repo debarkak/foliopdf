@@ -26,7 +26,7 @@ export interface FindResult { current: number; total: number; pending: boolean }
 export interface ReaderDocument {
   task: PDFDocumentLoadingTask;
   pdf: PDFDocumentProxy;
-  view?: { page: number; scale: string; point: number[]; layout: ReadingLayout };
+  view?: { page: number; scale: string; point: number[]; layout: ReadingLayout; rotation: number };
 }
 
 export class Reader {
@@ -106,6 +106,7 @@ export class Reader {
         page: this.state.page,
         scale: this.state.scaleValue,
         layout: this.state.layout,
+        rotation: this.viewer.pagesRotation,
         point: page.getPagePoint(this.container.scrollLeft - page.div.offsetLeft, this.container.scrollTop - page.div.offsetTop),
       };
     }
@@ -120,6 +121,7 @@ export class Reader {
       initialized = () => {
         const view = document.view;
         this.viewer.scrollMode = view?.layout === 'horizontal' ? ScrollMode.HORIZONTAL : ScrollMode.VERTICAL;
+        this.viewer.pagesRotation = view?.rotation ?? 0;
         this.viewer.currentScaleValue = view?.scale || 'page-width';
         if (view) this.viewer.scrollPageIntoView({
           pageNumber: view.page,
@@ -155,6 +157,12 @@ export class Reader {
   setLayout(layout: ReadingLayout): void {
     const page = this.viewer.currentPageNumber;
     this.viewer.scrollMode = layout === 'horizontal' ? ScrollMode.HORIZONTAL : ScrollMode.VERTICAL;
+    this.viewer.currentPageNumber = page;
+  }
+
+  rotate(): void {
+    const page = this.viewer.currentPageNumber;
+    this.viewer.pagesRotation = (this.viewer.pagesRotation + 90) % 360;
     this.viewer.currentPageNumber = page;
   }
 

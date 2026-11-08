@@ -1,4 +1,4 @@
-import { createElement, createIcons, ArrowDown, ArrowUp, BookOpen, ChevronLeft, ChevronRight, Columns2, FolderOpen, Minus, Plus, Rows2, Search, Settings2, X } from 'lucide';
+import { createElement, createIcons, ArrowDown, ArrowUp, BookOpen, ChevronLeft, ChevronRight, Columns2, FolderOpen, Minus, Plus, RotateCw, Rows2, Search, Settings2, X } from 'lucide';
 import 'pdfjs-dist/web/pdf_viewer.css';
 import '@fontsource-variable/open-sans';
 import './style.css';
@@ -14,7 +14,7 @@ function element<T extends HTMLElement>(id: string): T {
   return value as T;
 }
 
-createIcons({ icons: { ArrowDown, ArrowUp, BookOpen, ChevronLeft, ChevronRight, Columns2, FolderOpen, Minus, Plus, Rows2, Search, Settings2, X } });
+createIcons({ icons: { ArrowDown, ArrowUp, BookOpen, ChevronLeft, ChevronRight, Columns2, FolderOpen, Minus, Plus, RotateCw, Rows2, Search, Settings2, X } });
 const container = element<HTMLDivElement>('viewer-container');
 const pageNumber = element<HTMLInputElement>('page-number');
 const zoom = element<HTMLSelectElement>('zoom');
@@ -38,11 +38,12 @@ let busy = false;
 let findBar: FindBar | null = null;
 const vertical = element<HTMLButtonElement>('layout-vertical');
 const horizontal = element<HTMLButtonElement>('layout-horizontal');
+const rotate = element<HTMLButtonElement>('rotate');
 
 function update(state: ReaderState): void {
   const available = !!active && state.pages > 0 && !busy;
   findBar?.setAvailable(available);
-  vertical.disabled = horizontal.disabled = !available;
+  vertical.disabled = horizontal.disabled = rotate.disabled = !available;
   vertical.setAttribute('aria-pressed', String(state.layout === 'vertical'));
   horizontal.setAttribute('aria-pressed', String(state.layout === 'horizontal'));
   pageNumber.value = String(state.page);
@@ -65,6 +66,7 @@ const reader = new Reader(container, update, result => findBar?.update(result));
 findBar = new FindBar(reader);
 vertical.addEventListener('click', () => reader.setLayout('vertical'));
 horizontal.addEventListener('click', () => reader.setLayout('horizontal'));
+rotate.addEventListener('click', () => reader.rotate());
 
 function renderTabs(): void {
   element('tabs-bar').hidden = tabs.length === 0;
