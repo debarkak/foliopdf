@@ -34,12 +34,12 @@ with WSLg. they are not guaranteed to work on every distribution.
 - document text search with match counts and highlights
 - percentage zoom, actual size, fit width and fit page
 - system, light and dark themes with four color palettes
-- manual update checks from About / Updates
+- manual update checks from Settings
 
 ## updates
 
 Windows installer and Linux AppImage builds can download signed updates from
-GitHub Releases. open About / Updates, check for a new version, then download it.
+GitHub Releases. open Settings, check for a new version, then download it.
 installation requires a separate confirmation and closes the current tabs.
 portable Windows, Debian and tar archive builds offer the release download page.
 there are no background update checks.

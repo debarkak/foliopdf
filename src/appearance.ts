@@ -4,7 +4,6 @@ const palettes = ['sage', 'ocean', 'lavender', 'sand'] as const;
 type Theme = typeof themes[number];
 type Palette = typeof palettes[number];
 
-const dialog = document.querySelector<HTMLDialogElement>('#appearance-dialog')!;
 const theme = document.querySelector<HTMLSelectElement>('#appearance-theme')!;
 const radios = [...document.querySelectorAll<HTMLInputElement>('input[name="palette"]')];
 let current: { theme: Theme; palette: Palette } = { theme: 'system', palette: 'sage' };
@@ -28,4 +27,3 @@ function save(): void {
 apply();
 theme.addEventListener('change', () => { if (themes.includes(theme.value as Theme)) { current.theme = theme.value as Theme; save(); } });
 radios.forEach(radio => radio.addEventListener('change', () => { if (palettes.includes(radio.value as Palette)) { current.palette = radio.value as Palette; save(); } }));
-document.querySelector<HTMLButtonElement>('#appearance-open')!.addEventListener('click', () => dialog.showModal());

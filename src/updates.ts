@@ -30,7 +30,7 @@ async function release(): Promise<void> {
   await old?.close();
 }
 
-document.querySelector('#about')!.addEventListener('click', async () => {
+document.querySelector('#settings-open')!.addEventListener('click', async () => {
   dialog.showModal();
   document.querySelector('#app-version')!.textContent = `Version ${isTauri() ? await getVersion() : version}`;
 });

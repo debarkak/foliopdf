@@ -23,7 +23,7 @@ async function desktop(page: Page, options: { current?: boolean; portable?: bool
     };
   }, options);
   await page.goto('/');
-  await page.getByRole('button', { name: 'About and updates' }).click();
+  await page.getByRole('button', { name: 'Settings' }).click();
   await page.getByRole('button', { name: 'Check for updates' }).click();
 }
 
@@ -73,7 +73,7 @@ test('closing releases the pending update and clears the next dialog', async ({ 
   await expect(page.locator('#update-action')).toBeVisible();
   await page.locator('#update-close').click();
   await expect.poll(() => page.evaluate(() => (window as unknown as { calls: string[] }).calls)).toContain('plugin:resources|close');
-  await page.getByRole('button', { name: 'About and updates' }).click();
+  await page.getByRole('button', { name: 'Settings' }).click();
   await expect(page.locator('#update-action')).toBeHidden();
   await expect(page.locator('#update-status')).toHaveText('Check for a newer version.');
 });
