@@ -125,3 +125,22 @@ test('rotates pages without changing other tabs or the PDF', async ({ page }) =>
   await expect.poll(() => pdfPage.evaluate(el => el.clientWidth < el.clientHeight)).toBe(true);
   expect(before.width).toBeLessThan(before.height);
 });
+
+
+test('keyboard shortcuts navigate and rotate without intercepting text input', async ({ page }) => {
+  await openPdf(page);
+  await page.locator('#document-area').click({ position: { x: 2, y: 2 } });
+  await page.keyboard.press('Control+End');
+  await expect(page.locator('#page-number')).toHaveValue('3');
+  await page.keyboard.press('Control+Home');
+  await expect(page.locator('#page-number')).toHaveValue('1');
+  const pdfPage = page.locator('.page[data-page-number="1"]');
+  await page.keyboard.press('r');
+  await expect.poll(() => pdfPage.evaluate(el => el.clientWidth > el.clientHeight)).toBe(true);
+  await page.keyboard.press('Shift+r');
+  await expect.poll(() => pdfPage.evaluate(el => el.clientWidth < el.clientHeight)).toBe(true);
+  await page.getByRole('button', { name: 'Find in document' }).click();
+  await page.getByRole('searchbox', { name: 'Find text' }).fill('reader');
+  await expect(page.getByRole('searchbox', { name: 'Find text' })).toHaveValue('reader');
+  await expect.poll(() => pdfPage.evaluate(el => el.clientWidth < el.clientHeight)).toBe(true);
+});

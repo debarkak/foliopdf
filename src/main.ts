@@ -232,7 +232,17 @@ zoom.addEventListener('change', () => reader.zoom(zoom.value));
 zoomIn.addEventListener('click', () => reader.stepZoom(1));
 zoomOut.addEventListener('click', () => reader.stepZoom(-1));
 document.addEventListener('keydown', event => {
-  if (document.querySelector('dialog[open]') || !(event.ctrlKey || event.metaKey) || event.altKey) return;
+  if (document.querySelector('dialog[open]') || event.altKey) return;
+  const target = event.target as HTMLElement | null;
+  const editing = !!target?.closest('input, select, textarea, [contenteditable]:not([contenteditable="false"])');
+  const command = event.ctrlKey || event.metaKey;
+  if (active && !busy && !editing) {
+    if (!command && event.key.toLowerCase() === 'r') { event.preventDefault(); reader.rotate(event.shiftKey ? -1 : 1); return; }
+    if (command && !event.shiftKey && (event.key === 'Home' || event.key === 'End')) {
+      event.preventDefault(); reader.goTo(event.key === 'Home' ? 1 : reader.state.pages); return;
+    }
+  }
+  if (!command) return;
   if (event.key.toLowerCase() === 'o') { event.preventDefault(); void open(); }
   if (!active || busy) return;
   if (event.key.toLowerCase() === 'w') { event.preventDefault(); void closeTab(active); }

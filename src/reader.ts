@@ -160,9 +160,9 @@ export class Reader {
     this.viewer.currentPageNumber = page;
   }
 
-  rotate(): void {
+  rotate(direction: 1 | -1 = 1): void {
     const page = this.viewer.currentPageNumber;
-    this.viewer.pagesRotation = (this.viewer.pagesRotation + 90) % 360;
+    this.viewer.pagesRotation = (this.viewer.pagesRotation + direction * 90 + 360) % 360;
     this.viewer.currentPageNumber = page;
   }
 
