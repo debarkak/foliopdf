@@ -144,3 +144,17 @@ test('keyboard shortcuts navigate and rotate without intercepting text input', a
   await expect(page.getByRole('searchbox', { name: 'Find text' })).toHaveValue('reader');
   await expect.poll(() => pdfPage.evaluate(el => el.clientWidth < el.clientHeight)).toBe(true);
 });
+
+
+test('search can match case and whole words together', async ({ page }) => {
+  await openPdf(page, 'words.pdf', 'Needle needles needle');
+  await page.getByRole('button', { name: 'Find in document' }).click();
+  await page.getByRole('searchbox', { name: 'Find text' }).fill('needle');
+  await expect(page.locator('#find-count')).toHaveText('1 of 9');
+  await page.getByRole('button', { name: 'Match case' }).click();
+  await expect(page.locator('#find-count')).toHaveText('1 of 6');
+  await page.getByRole('button', { name: 'Match whole words' }).click();
+  await expect(page.locator('#find-count')).toHaveText('1 of 3');
+  await page.getByRole('button', { name: 'Match case' }).click();
+  await expect(page.locator('#find-count')).toHaveText('1 of 6');
+});

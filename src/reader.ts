@@ -166,13 +166,13 @@ export class Reader {
     this.viewer.currentPageNumber = page;
   }
 
-  find(query: string, again = false, previous = false): void {
+  find(query: string, again = false, previous = false, caseSensitive = false, entireWord = false): void {
     this.events.dispatch('find', {
       source: this,
       type: again ? 'again' : '',
       query,
-      caseSensitive: false,
-      entireWord: false,
+      caseSensitive,
+      entireWord,
       highlightAll: true,
       findPrevious: previous,
       matchDiacritics: false,

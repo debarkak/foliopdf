@@ -146,3 +146,6 @@ h1 { font: 500 28px/1.3 'Open Sans Variable', system-ui, sans-serif; letter-spac
   :root[data-backdrop="mica"] .toolbar, :root[data-backdrop="mica"] .tabs-bar,
   :root[data-backdrop="mica"] .find-bar, :root[data-backdrop="mica"] .statusbar { background: Canvas; }
 }
+
+.find-bar #find-query { flex: 1 1 120px; width: 0; max-width: 260px; min-width: 55px; }
+.find-bar [aria-pressed="true"] { background: var(--hover); color: var(--accent); }

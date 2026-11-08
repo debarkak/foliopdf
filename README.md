@@ -8,7 +8,8 @@ each document opens in a tab and keeps its page, zoom and reading position.
 use Ctrl+Tab / Ctrl+Shift+Tab to switch and Ctrl+W to close.
 
 find text with Ctrl+F. use Enter / Shift+Enter, F3 / Shift+F3 or the match buttons
-to move through results. Escape closes search. search is limited to the active PDF.
+to move through results. use the search options for case-sensitive or whole-word
+matches. Escape closes search. search is limited to the active PDF.
 the page direction buttons switch between vertical and horizontal reading;
 each tab keeps its own direction. use R / Shift+R to rotate pages, and
 Ctrl+Home / Ctrl+End to jump to the first / last page.
