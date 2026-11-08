@@ -1,5 +1,6 @@
 import { createElement, createIcons, ArrowDown, ArrowUp, BookOpen, ChevronLeft, ChevronRight, Columns2, FolderOpen, Minus, Plus, Rows2, Search, Settings2, X } from 'lucide';
 import 'pdfjs-dist/web/pdf_viewer.css';
+import '@fontsource-variable/open-sans';
 import './style.css';
 import './updates';
 import './appearance';

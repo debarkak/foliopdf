@@ -70,18 +70,23 @@
       <footer class="statusbar"><span id="status" role="status" aria-live="polite">Ready</span></footer>
       <dialog id="updates-dialog" aria-labelledby="settings-title">
         <div class="settings-heading"><div><span class="eyebrow">FOLIOPDF / PREFERENCES</span><h2 id="settings-title">Settings</h2></div><button id="update-close" aria-label="Close settings" title="Close settings"><i data-lucide="x" aria-hidden="true"></i></button></div>
-        <section class="settings-section" aria-labelledby="appearance-title">
+        <div id="settings-home" class="settings-menu">
+          <button id="settings-appearance" class="settings-item"><span><strong>Appearance</strong><small>Theme and color</small></span><i data-lucide="chevron-right" aria-hidden="true"></i></button>
+          <button id="settings-about" class="settings-item"><span><strong>About &amp; updates</strong><small>Version and updates</small></span><i data-lucide="chevron-right" aria-hidden="true"></i></button>
+        </div>
+        <button id="settings-back" class="settings-back" hidden><i data-lucide="chevron-left" aria-hidden="true"></i>Settings</button>
+        <section id="settings-appearance-page" class="settings-section" aria-labelledby="appearance-title" hidden>
           <div class="section-heading"><span class="section-number">01</span><h3 id="appearance-title">Appearance</h3></div>
           <label class="appearance-label" for="appearance-theme">Theme</label>
           <select id="appearance-theme"><option value="system">System</option><option value="light">Light</option><option value="dark">Dark</option></select>
           <fieldset class="palette-options"><legend>Color</legend>
-            <label><input type="radio" name="palette" value="sage" /> <span class="swatch sage"></span>Sage</label>
-            <label><input type="radio" name="palette" value="ocean" /> <span class="swatch ocean"></span>Ocean</label>
-            <label><input type="radio" name="palette" value="lavender" /> <span class="swatch lavender"></span>Lavender</label>
-            <label><input type="radio" name="palette" value="sand" /> <span class="swatch sand"></span>Sand</label>
+            <label title="Sage"><input type="radio" name="palette" value="sage" aria-label="Sage" /><span class="swatch sage" aria-hidden="true"></span></label>
+            <label title="Ocean"><input type="radio" name="palette" value="ocean" aria-label="Ocean" /><span class="swatch ocean" aria-hidden="true"></span></label>
+            <label title="Lavender"><input type="radio" name="palette" value="lavender" aria-label="Lavender" /><span class="swatch lavender" aria-hidden="true"></span></label>
+            <label title="Sand"><input type="radio" name="palette" value="sand" aria-label="Sand" /><span class="swatch sand" aria-hidden="true"></span></label>
           </fieldset>
         </section>
-        <section class="settings-section" aria-labelledby="updates-title">
+        <section id="settings-about-page" class="settings-section" aria-labelledby="updates-title" hidden>
           <div class="section-heading"><span class="section-number">02</span><h3 id="updates-title">About &amp; updates</h3></div>
           <p id="app-version"></p>
           <p id="update-status" role="status" aria-live="polite">Check for a newer version.</p>

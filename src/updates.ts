@@ -13,6 +13,10 @@ const warning = document.querySelector<HTMLElement>('#update-warning')!;
 const checkButton = document.querySelector<HTMLButtonElement>('#update-check')!;
 const action = document.querySelector<HTMLButtonElement>('#update-action')!;
 const close = document.querySelector<HTMLButtonElement>('#update-close')!;
+const back = document.querySelector<HTMLButtonElement>('#settings-back')!;
+const home = document.querySelector<HTMLElement>('#settings-home')!;
+const appearancePage = document.querySelector<HTMLElement>('#settings-appearance-page')!;
+const aboutPage = document.querySelector<HTMLElement>('#settings-about-page')!;
 let update: Update | null = null;
 let canInstall = false;
 let downloaded = false;
@@ -20,7 +24,7 @@ let busy = false;
 
 function working(value: boolean): void {
   busy = value;
-  checkButton.disabled = action.disabled = close.disabled = value;
+  checkButton.disabled = action.disabled = close.disabled = back.disabled = value;
 }
 
 async function release(): Promise<void> {
@@ -30,7 +34,18 @@ async function release(): Promise<void> {
   await old?.close();
 }
 
+function showPage(page: 'home' | 'appearance' | 'about'): void {
+  home.hidden = page !== 'home';
+  appearancePage.hidden = page !== 'appearance';
+  aboutPage.hidden = page !== 'about';
+  back.hidden = page === 'home';
+}
+document.querySelector<HTMLButtonElement>('#settings-appearance')!.addEventListener('click', () => { showPage('appearance'); back.focus(); });
+document.querySelector<HTMLButtonElement>('#settings-about')!.addEventListener('click', () => { showPage('about'); back.focus(); });
+back.addEventListener('click', () => { const previous = appearancePage.hidden ? '#settings-about' : '#settings-appearance'; showPage('home'); document.querySelector<HTMLButtonElement>(previous)!.focus(); });
+
 document.querySelector('#settings-open')!.addEventListener('click', async () => {
+  showPage('home');
   dialog.showModal();
   document.querySelector('#app-version')!.textContent = `Version ${isTauri() ? await getVersion() : version}`;
 });

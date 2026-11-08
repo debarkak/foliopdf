@@ -2,7 +2,8 @@ import { expect, test } from '@playwright/test';
 
 test('appearance changes apply and persist after reopening', async ({ page }) => {
   await page.goto('/');
-  await page.getByRole('button', { name: 'Settings' }).click();
+  await page.getByRole('button', { name: 'Settings', exact: true }).click();
+  await page.getByRole('button', { name: 'Appearance Theme and color' }).click();
   await expect(page.getByLabel('Theme', { exact: true })).toHaveValue('system');
   await page.getByLabel('Theme', { exact: true }).selectOption('dark');
   await page.getByLabel('Ocean').check();
@@ -12,8 +13,11 @@ test('appearance changes apply and persist after reopening', async ({ page }) =>
   await page.reload();
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
   await expect(page.locator('html')).toHaveAttribute('data-palette', 'ocean');
-  await page.getByRole('button', { name: 'Settings' }).click();
+  await page.getByRole('button', { name: 'Settings', exact: true }).click();
+  await page.getByRole('button', { name: 'Appearance Theme and color' }).click();
   await expect(page.getByLabel('Ocean')).toBeChecked();
+  await page.getByRole('button', { name: 'Settings', exact: true }).last().click();
+  await expect(page.getByRole('button', { name: 'Appearance Theme and color' })).toBeFocused();
 });
 
 test('invalid preferences fall back to defaults', async ({ page }) => {
