@@ -13,8 +13,11 @@ jobs:
     env:
       CARGO_BUILD_JOBS: 2
       APPIMAGE_EXTRACT_AND_RUN: 1
+      LDAI_RUNTIME_FILE: /tmp/foliopdf-appimage-runtime
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: 45c26bf6f6fd571f37109299198ed99e051754e3
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 22
@@ -30,11 +33,25 @@ jobs:
         run: |
           npx playwright install --with-deps chromium
           npm test
+      - name: Fetch pinned packaging tools via GitHub API
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$HOME/.cache/tauri"
+          gh api -H 'Accept: application/octet-stream' repos/tauri-apps/binary-releases/releases/assets/274691722 > "$HOME/.cache/tauri/AppRun-x86_64"
+          gh api -H 'Accept: application/octet-stream' repos/tauri-apps/binary-releases/releases/assets/576945544 > "$HOME/.cache/tauri/linuxdeploy-07333c6-x86_64.AppImage"
+          gh api -H 'Accept: application/octet-stream' repos/linuxdeploy/linuxdeploy-plugin-appimage/releases/assets/602435573 > "$HOME/.cache/tauri/linuxdeploy-plugin-appimage.AppImage"
+          gh api -H 'Accept: application/octet-stream' repos/AppImage/type2-runtime/releases/assets/657374641 > /tmp/foliopdf-appimage-runtime
+          echo '617aa77314d57c8b8e4fae9c3f0b35af7b30d5529cb69e98f64f92510ed98a46  /tmp/foliopdf-appimage-runtime' | sha256sum -c -
+          cd "$HOME/.cache/tauri"
+          printf '%s\n' 'f30140a43a0a59e46db21bdefdf749b9e9f2c6946e92afabbacf98b8ae73fb4f  AppRun-x86_64' '36a2d7e274d12e1050d0e9ecfe11d339ed54720b2bec464c286d53f8b07f5c62  linuxdeploy-07333c6-x86_64.AppImage' '49d6a17160675a6bd1781699aae6bdf7692d98552e02a3671d2183d10547842e  linuxdeploy-plugin-appimage.AppImage' | sha256sum -c -
+          chmod +x AppRun-x86_64 *.AppImage
       - name: Build Debian and AppImage packages
         env:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
-        run: npm run tauri build -- --bundles deb,appimage
+        run: npm run tauri build -- --verbose --bundles deb,appimage
       - name: Check the native Linux reader
         run: |
           cargo install tauri-driver --locked
