@@ -79,6 +79,8 @@
         <div class="settings-heading"><div><span class="eyebrow">FOLIOPDF / PREFERENCES</span><h2 id="settings-title">Settings</h2></div><button id="update-close" aria-label="Close settings" title="Close settings"><i data-lucide="x" aria-hidden="true"></i></button></div>
         <div id="settings-home" class="settings-menu">
           <button id="settings-appearance" class="settings-item"><span><strong>Appearance</strong><small>Theme and color</small></span><i data-lucide="chevron-right" aria-hidden="true"></i></button>
+          <button id="settings-gestures" class="settings-item"><span><strong>Reading &amp; gestures</strong><small>Zoom shortcuts and trackpad gestures</small></span><i data-lucide="chevron-right" aria-hidden="true"></i></button>
+          <button id="settings-help" class="settings-item"><span><strong>Help</strong><small>Controls and keyboard shortcuts</small></span><i data-lucide="chevron-right" aria-hidden="true"></i></button>
           <button id="settings-about" class="settings-item"><span><strong>About &amp; updates</strong><small>Version and updates</small></span><i data-lucide="chevron-right" aria-hidden="true"></i></button>
         </div>
         <button id="settings-back" class="settings-back" hidden><i data-lucide="chevron-left" aria-hidden="true"></i>Settings</button>
@@ -96,8 +98,17 @@
             <label title="Teal"><input type="radio" name="palette" value="teal" aria-label="Teal" /><span class="swatch teal" aria-hidden="true"></span></label>
           </fieldset>
         </section>
+        <section id="settings-gestures-page" class="settings-section" aria-labelledby="gestures-title" hidden>
+          <div class="section-heading"><span class="section-number">02</span><h3 id="gestures-title">Reading &amp; gestures</h3></div>
+          <label class="setting-toggle"><span><strong>Pinch to zoom</strong><small>Use a trackpad pinch gesture to zoom.</small></span><input id="gesture-pinch" type="checkbox" checked /></label>
+          <label class="setting-toggle"><span><strong>Ctrl + mouse wheel</strong><small>Zoom while holding Ctrl and scrolling.</small></span><input id="gesture-wheel" type="checkbox" checked /></label>
+        </section>
+        <section id="settings-help-page" class="settings-section" aria-labelledby="help-title" hidden>
+          <div class="section-heading"><span class="section-number">03</span><h3 id="help-title">Help</h3></div>
+          <dl class="shortcuts"><dt>Open PDF</dt><dd>Ctrl + O</dd><dt>Zoom in / out</dt><dd>Ctrl + + / −</dd><dt>Actual size</dt><dd>Ctrl + 0</dd><dt>Find</dt><dd>Ctrl + F</dd><dt>Switch tabs</dt><dd>Ctrl + Tab</dd></dl>
+        </section>
         <section id="settings-about-page" class="settings-section" aria-labelledby="updates-title" hidden>
-          <div class="section-heading"><span class="section-number">02</span><h3 id="updates-title">About &amp; updates</h3></div>
+          <div class="section-heading"><span class="section-number">04</span><h3 id="updates-title">About &amp; updates</h3></div>
           <p id="app-version"></p>
           <p id="update-status" role="status" aria-live="polite">Check for a newer version.</p>
           <p id="update-notes" hidden></p>

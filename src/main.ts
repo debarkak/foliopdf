@@ -271,6 +271,35 @@ pageNumber.addEventListener('keydown', event => {
 zoom.addEventListener('change', () => reader.zoom(zoom.value));
 zoomIn.addEventListener('click', () => reader.stepZoom(1));
 zoomOut.addEventListener('click', () => reader.stepZoom(-1));
+const gesturePrefs = (() => {
+  try { return JSON.parse(localStorage.getItem('foliopdf.gestures') || '{"pinch":true,"wheel":true}'); }
+  catch { return { pinch: true, wheel: true }; }
+})();
+const pinchToggle = element<HTMLInputElement>('gesture-pinch');
+const wheelToggle = element<HTMLInputElement>('gesture-wheel');
+pinchToggle.checked = gesturePrefs.pinch !== false;
+wheelToggle.checked = gesturePrefs.wheel !== false;
+function saveGestures(): void {
+  try { localStorage.setItem('foliopdf.gestures', JSON.stringify({ pinch: pinchToggle.checked, wheel: wheelToggle.checked })); } catch { /* Apply for this session. */ }
+}
+pinchToggle.addEventListener('change', saveGestures);
+wheelToggle.addEventListener('change', saveGestures);
+container.addEventListener('wheel', event => {
+  if (!active || busy || !wheelToggle.checked || !event.ctrlKey) return;
+  event.preventDefault();
+  reader.stepZoom(event.deltaY < 0 ? 1 : -1);
+}, { passive: false });
+let pinchDistance = 0;
+container.addEventListener('touchstart', event => {
+  if (event.touches.length === 2) pinchDistance = Math.hypot(event.touches[0].clientX - event.touches[1].clientX, event.touches[0].clientY - event.touches[1].clientY);
+}, { passive: true });
+container.addEventListener('touchmove', event => {
+  if (!active || busy || !pinchToggle.checked || event.touches.length !== 2 || !pinchDistance) return;
+  const distance = Math.hypot(event.touches[0].clientX - event.touches[1].clientX, event.touches[0].clientY - event.touches[1].clientY);
+  if (Math.abs(distance - pinchDistance) > 12) { reader.stepZoom(distance > pinchDistance ? 1 : -1); pinchDistance = distance; }
+  event.preventDefault();
+}, { passive: false });
+container.addEventListener('touchend', () => { pinchDistance = 0; }, { passive: true });
 document.addEventListener('keydown', event => {
   if (document.querySelector('dialog[open]') || event.altKey) return;
   const target = event.target as HTMLElement | null;
@@ -290,7 +319,7 @@ document.addEventListener('keydown', event => {
     event.preventDefault();
     void activate(tabs[(tabs.indexOf(active) + (event.shiftKey ? -1 : 1) + tabs.length) % tabs.length]);
   }
-  if (event.key === '+' || event.key === '=') { event.preventDefault(); reader.stepZoom(1); }
-  if (event.key === '-') { event.preventDefault(); reader.stepZoom(-1); }
+  if ((event.key === '+' || event.key === '=' || event.key === 'Add') && !event.shiftKey) { event.preventDefault(); reader.stepZoom(1); }
+  if (event.key === '-' || event.key === 'Subtract') { event.preventDefault(); reader.stepZoom(-1); }
   if (event.key === '0') { event.preventDefault(); reader.zoom('1'); }
 });
