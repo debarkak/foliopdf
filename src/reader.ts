@@ -203,6 +203,10 @@ export class Reader {
     this.viewer.annotationEditorMode = { mode: enabled ? AnnotationEditorType.FREETEXT : AnnotationEditorType.NONE };
   }
 
+  setHighlightTool(enabled: boolean): void {
+    this.viewer.annotationEditorMode = { mode: enabled ? AnnotationEditorType.HIGHLIGHT : AnnotationEditorType.NONE };
+  }
+
   async save(): Promise<Uint8Array> {
     if (!this.active) throw new Error('No PDF is open.');
     return this.active.pdf.saveDocument();

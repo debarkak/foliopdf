@@ -1,4 +1,4 @@
-import { createElement, createIcons, ArrowDown, ArrowUp, BookOpen, CaseSensitive, ChevronLeft, ChevronRight, Columns2, FolderOpen, Minus, Plus, RotateCw, Rows2, Search, Settings2, WholeWord, X, Type, Save } from 'lucide';
+import { createElement, createIcons, ArrowDown, ArrowUp, BookOpen, CaseSensitive, ChevronLeft, ChevronRight, Columns2, FolderOpen, Highlighter, Minus, Plus, Printer, RotateCw, Rows2, Search, Settings2, WholeWord, X, Type, Save } from 'lucide';
 import 'pdfjs-dist/web/pdf_viewer.css';
 import '@fontsource-variable/open-sans';
 import './style.css';
@@ -21,7 +21,7 @@ function element<T extends HTMLElement>(id: string): T {
   return value as T;
 }
 
-createIcons({ icons: { ArrowDown, ArrowUp, BookOpen, CaseSensitive, ChevronLeft, ChevronRight, Columns2, FolderOpen, Minus, Plus, RotateCw, Rows2, Search, Settings2, WholeWord, X, Type, Save } });
+createIcons({ icons: { ArrowDown, ArrowUp, BookOpen, CaseSensitive, ChevronLeft, ChevronRight, Columns2, FolderOpen, Highlighter, Minus, Plus, Printer, RotateCw, Rows2, Search, Settings2, WholeWord, X, Type, Save } });
 const container = element<HTMLDivElement>('viewer-container');
 const pageNumber = element<HTMLInputElement>('page-number');
 const zoom = element<HTMLSelectElement>('zoom');
@@ -48,12 +48,14 @@ const horizontal = element<HTMLButtonElement>('layout-horizontal');
 const rotate = element<HTMLButtonElement>('rotate');
 const textTool = element<HTMLButtonElement>('text-tool');
 const saveButton = element<HTMLButtonElement>('save');
+const highlightTool = element<HTMLButtonElement>('highlight-tool');
+const printButton = element<HTMLButtonElement>('print');
 
 function update(state: ReaderState): void {
   const available = !!active && state.pages > 0 && !busy;
   findBar?.setAvailable(available);
   vertical.disabled = horizontal.disabled = rotate.disabled = !available;
-  textTool.disabled = saveButton.disabled = !available;
+  textTool.disabled = saveButton.disabled = highlightTool.disabled = printButton.disabled = !available;
   vertical.setAttribute('aria-pressed', String(state.layout === 'vertical'));
   horizontal.setAttribute('aria-pressed', String(state.layout === 'horizontal'));
   pageNumber.value = String(state.page);
@@ -84,6 +86,14 @@ textTool.addEventListener('click', () => {
   textTool.title = enabled ? 'Place text on a page; press Escape to finish' : 'Add text';
   status.textContent = enabled ? 'Click a page to place text. Press Escape to finish.' : `Page ${reader.state.page} of ${reader.state.pages}`;
 });
+highlightTool.addEventListener('click', () => {
+  const enabled = highlightTool.getAttribute('aria-pressed') !== 'true';
+  reader.setHighlightTool(enabled);
+  highlightTool.setAttribute('aria-pressed', String(enabled));
+  textTool.setAttribute('aria-pressed', 'false');
+  status.textContent = enabled ? 'Select text to highlight. Press Escape to finish.' : `Page ${reader.state.page} of ${reader.state.pages}`;
+});
+printButton.addEventListener('click', () => window.print());
 saveButton.addEventListener('click', async () => {
   if (!active || busy) return;
   saveButton.disabled = true;

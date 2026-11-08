@@ -50,6 +50,12 @@ button svg { width: 16px; height: 16px; stroke-width: 1.7; }
 #document-area { position: relative; flex: 1; min-height: 0; }
 #viewer-container { position: absolute; inset: 0; overflow: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--muted) 48%, var(--canvas)) var(--canvas); }
 #viewer { padding: 18px 0; }
+@media print {
+  .tabs-bar, .toolbar, .find-bar, .statusbar, .empty-state, .loading { display: none !important; }
+  #app, #document-area, #viewer-container { height: auto; overflow: visible; position: static; }
+  #viewer { padding: 0; }
+  .pdfViewer .page { margin: 0 auto 10mm; box-shadow: none; break-after: page; }
+}
 .pdfViewer .page { border: 0; margin-bottom: 18px; box-shadow: 0 1px 3px #0002, 0 5px 18px #0000000d; }
 .pdfViewer.scrollHorizontal { margin-inline: 0; padding: 18px 9px; }
 .pdfViewer.scrollHorizontal .page { margin: 0 9px; vertical-align: top; }
