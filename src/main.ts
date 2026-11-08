@@ -1,4 +1,4 @@
-import { createElement, createIcons, ArrowDown, ArrowUp, BookOpen, CaseSensitive, ChevronLeft, ChevronRight, Columns2, FolderOpen, Minus, Plus, RotateCw, Rows2, Search, Settings2, WholeWord, X } from 'lucide';
+import { createElement, createIcons, ArrowDown, ArrowUp, BookOpen, CaseSensitive, ChevronLeft, ChevronRight, Columns2, FolderOpen, Minus, Plus, RotateCw, Rows2, Search, Settings2, WholeWord, X, Type, Save } from 'lucide';
 import 'pdfjs-dist/web/pdf_viewer.css';
 import '@fontsource-variable/open-sans';
 import './style.css';
@@ -11,7 +11,7 @@ if (isTauri()) {
     if (enabled) document.documentElement.dataset.backdrop = 'mica';
   }).catch(() => { /* Keep the opaque appearance if the effect is unavailable. */ });
 }
-import { pickPdf } from './platform';
+import { pickPdf, savePdf } from './platform';
 import { Reader, type ReaderDocument, type ReaderState } from './reader';
 import { FindBar } from './find';
 
@@ -21,7 +21,7 @@ function element<T extends HTMLElement>(id: string): T {
   return value as T;
 }
 
-createIcons({ icons: { ArrowDown, ArrowUp, BookOpen, CaseSensitive, ChevronLeft, ChevronRight, Columns2, FolderOpen, Minus, Plus, RotateCw, Rows2, Search, Settings2, WholeWord, X } });
+createIcons({ icons: { ArrowDown, ArrowUp, BookOpen, CaseSensitive, ChevronLeft, ChevronRight, Columns2, FolderOpen, Minus, Plus, RotateCw, Rows2, Search, Settings2, WholeWord, X, Type, Save } });
 const container = element<HTMLDivElement>('viewer-container');
 const pageNumber = element<HTMLInputElement>('page-number');
 const zoom = element<HTMLSelectElement>('zoom');
@@ -46,11 +46,14 @@ let findBar: FindBar | null = null;
 const vertical = element<HTMLButtonElement>('layout-vertical');
 const horizontal = element<HTMLButtonElement>('layout-horizontal');
 const rotate = element<HTMLButtonElement>('rotate');
+const textTool = element<HTMLButtonElement>('text-tool');
+const saveButton = element<HTMLButtonElement>('save');
 
 function update(state: ReaderState): void {
   const available = !!active && state.pages > 0 && !busy;
   findBar?.setAvailable(available);
   vertical.disabled = horizontal.disabled = rotate.disabled = !available;
+  textTool.disabled = saveButton.disabled = !available;
   vertical.setAttribute('aria-pressed', String(state.layout === 'vertical'));
   horizontal.setAttribute('aria-pressed', String(state.layout === 'horizontal'));
   pageNumber.value = String(state.page);
@@ -74,6 +77,26 @@ findBar = new FindBar(reader);
 vertical.addEventListener('click', () => reader.setLayout('vertical'));
 horizontal.addEventListener('click', () => reader.setLayout('horizontal'));
 rotate.addEventListener('click', () => reader.rotate());
+textTool.addEventListener('click', () => {
+  const enabled = textTool.getAttribute('aria-pressed') !== 'true';
+  reader.setTextTool(enabled);
+  textTool.setAttribute('aria-pressed', String(enabled));
+  textTool.title = enabled ? 'Place text on a page; press Escape to finish' : 'Add text';
+  status.textContent = enabled ? 'Click a page to place text. Press Escape to finish.' : `Page ${reader.state.page} of ${reader.state.pages}`;
+});
+saveButton.addEventListener('click', async () => {
+  if (!active || busy) return;
+  saveButton.disabled = true;
+  status.textContent = 'Preparing edited PDF…';
+  try {
+    const data = await reader.save();
+    const saved = await savePdf(active.name, data);
+    status.textContent = saved ? 'Edited copy saved.' : 'Save cancelled.';
+  } catch (error) {
+    report(error);
+    status.textContent = 'Could not save the edited PDF.';
+  } finally { saveButton.disabled = false; }
+});
 
 function renderTabs(): void {
   element('tabs-bar').hidden = tabs.length === 0;

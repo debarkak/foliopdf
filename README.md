@@ -13,6 +13,8 @@ matches. Escape closes search. search is limited to the active PDF.
 the page direction buttons switch between vertical and horizontal reading;
 each tab keeps its own direction. use R / Shift+R to rotate pages, and
 Ctrl+Home / Ctrl+End to jump to the first / last page.
+to add text, choose the type tool and click a page. save the changes as an
+edited copy so the original PDF stays as it is.
 
 ## download
 
@@ -38,6 +40,7 @@ with WSLg. they are not guaranteed to work on every distribution.
 - percentage zoom, actual size, fit width and fit page
 - system, light and dark themes with seven color palettes
 - Mica on supported Windows 11 systems
+- add and edit free text annotations, then save an edited copy
 - manual update checks from Settings
 
 ## updates
@@ -106,7 +109,9 @@ never publish manifests from local test builds.
 
 ## current limits
 
-password-protected PDFs, external links, saving and editing are not supported yet.
+password-protected PDFs and external links are not supported yet. editing currently
+covers free text annotations; existing form fields, highlighting, drawing and deleting
+annotations are not available yet. edited PDFs are saved as a separate copy.
 macOS has not been tested.
 
 ## credits

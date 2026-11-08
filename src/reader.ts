@@ -47,7 +47,7 @@ export class Reader {
       linkService: this.links,
       findController: this.finder,
       annotationMode: AnnotationMode.ENABLE,
-      annotationEditorMode: AnnotationEditorType.DISABLE,
+      annotationEditorMode: AnnotationEditorType.NONE,
       enableAutoLinking: false,
       imageResourcesPath: new URL('/pdfjs/images/', window.location.href).href,
     });
@@ -197,5 +197,14 @@ export class Reader {
       ? steps.find(value => value > current + 0.01) ?? 4
       : [...steps].reverse().find(value => value < current - 0.01) ?? 0.25;
     this.zoom(String(next));
+  }
+
+  setTextTool(enabled: boolean): void {
+    this.viewer.annotationEditorMode = { mode: enabled ? AnnotationEditorType.FREETEXT : AnnotationEditorType.NONE };
+  }
+
+  async save(): Promise<Uint8Array> {
+    if (!this.active) throw new Error('No PDF is open.');
+    return this.active.pdf.saveDocument();
   }
 }
