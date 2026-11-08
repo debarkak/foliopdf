@@ -12,6 +12,8 @@ jobs:
     timeout-minutes: 35
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: 95f312218aa0192ef3d90e5df3d37e21d21c36d2
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 22
@@ -23,6 +25,26 @@ jobs:
         run: |
           npx playwright install chromium
           npm test
+      - name: Fetch pinned installer tools via GitHub API
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $cache = Join-Path $env:LOCALAPPDATA 'tauri'
+          New-Item -ItemType Directory -Force $cache | Out-Null
+          $archive = Join-Path $env:RUNNER_TEMP 'nsis.zip'
+          gh api -H 'Accept: application/octet-stream' repos/tauri-apps/binary-releases/releases/assets/623832696 > $archive
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          if ((Get-FileHash $archive -Algorithm SHA256).Hash -ne 'BA63DFFC4410EE89193E1CB5A41989991BD77C61068DA17E3156D136B7B0B3D8') { throw 'NSIS checksum mismatch' }
+          Expand-Archive $archive -DestinationPath $cache
+          Move-Item (Join-Path $cache 'nsis-3.13') (Join-Path $cache 'NSIS')
+          $plugins = Join-Path $cache 'NSIS/Plugins/x86-unicode/additional'
+          New-Item -ItemType Directory -Force $plugins | Out-Null
+          $plugin = Join-Path $plugins 'nsis_tauri_utils.dll'
+          gh api -H 'Accept: application/octet-stream' repos/tauri-apps/nsis-tauri-utils/releases/assets/345882097 > $plugin
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          if ((Get-FileHash $plugin -Algorithm SHA256).Hash -ne '5BA143B5DB4A87D32D6E7802E033330AAE56CBCEABE0D1E3BA41948385AD4709') { throw 'NSIS plugin checksum mismatch' }
       - name: Build signed update installer
         env:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
