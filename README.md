@@ -7,6 +7,11 @@ open local PDFs, select text, scroll through pages and adjust the zoom.
 each document opens in a tab and keeps its page, zoom and reading position.
 use Ctrl+Tab / Ctrl+Shift+Tab to switch and Ctrl+W to close.
 
+find text with Ctrl+F. use Enter / Shift+Enter, F3 / Shift+F3 or the match buttons
+to move through results. Escape closes search. search is limited to the active PDF.
+the page direction buttons switch between vertical and horizontal reading;
+each tab keeps its own direction.
+
 ## download
 
 get the latest build from [GitHub Releases](https://github.com/debarkak/foliopdf/releases).
@@ -25,6 +30,8 @@ with WSLg. they are not guaranteed to work on every distribution.
 
 - selectable PDF text
 - vertical scrolling and page navigation
+- horizontal page scrolling
+- document text search with match counts and highlights
 - percentage zoom, actual size, fit width and fit page
 - system light and dark appearance
 - manual update checks from About / Updates
@@ -37,7 +44,7 @@ installation requires a separate confirmation and closes the current tabs.
 portable Windows, Debian and tar archive builds offer the release download page.
 there are no background update checks.
 
-version 1.0 needs a manual upgrade to 1.0.1 to gain the updater.
+version 1.0 needs a manual upgrade to 1.0.1 or newer to gain the updater.
 
 ## development
 

@@ -7,7 +7,7 @@ import {
   type PDFDocumentLoadingTask,
   type PDFDocumentProxy,
 } from 'pdfjs-dist';
-import { EventBus, PDFLinkService, PDFViewer, ScrollMode } from 'pdfjs-dist/web/pdf_viewer.mjs';
+import { EventBus, FindState, PDFFindController, PDFLinkService, PDFViewer, ScrollMode } from 'pdfjs-dist/web/pdf_viewer.mjs';
 import workerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 
 GlobalWorkerOptions.workerSrc = workerUrl;
@@ -17,29 +17,35 @@ export interface ReaderState {
   pages: number;
   scale: number;
   scaleValue: string;
+  layout: ReadingLayout;
 }
+
+export type ReadingLayout = 'vertical' | 'horizontal';
+export interface FindResult { current: number; total: number; pending: boolean }
 
 export interface ReaderDocument {
   task: PDFDocumentLoadingTask;
   pdf: PDFDocumentProxy;
-  view?: { page: number; scale: string; point: number[] };
+  view?: { page: number; scale: string; point: number[]; layout: ReadingLayout };
 }
 
 export class Reader {
   private readonly events = new EventBus();
   private readonly links = new PDFLinkService();
+  private readonly finder = new PDFFindController({ linkService: this.links, eventBus: this.events });
   private readonly viewer: PDFViewer;
   private readonly worker = new PDFWorker();
   private active: ReaderDocument | null = null;
   private readonly container: HTMLDivElement;
 
-  constructor(container: HTMLDivElement, onChange: (state: ReaderState) => void) {
+  constructor(container: HTMLDivElement, onChange: (state: ReaderState) => void, onFind?: (result: FindResult) => void) {
     this.container = container;
     this.links.externalLinkEnabled = false;
     this.viewer = new PDFViewer({
       container,
       eventBus: this.events,
       linkService: this.links,
+      findController: this.finder,
       annotationMode: AnnotationMode.ENABLE,
       annotationEditorMode: AnnotationEditorType.DISABLE,
       enableAutoLinking: false,
@@ -50,6 +56,15 @@ export class Reader {
     const publish = () => onChange(this.state);
     this.events.on('pagechanging', publish);
     this.events.on('scalechanging', publish);
+    this.events.on('scrollmodechanged', publish);
+    let findState: number = FindState.FOUND;
+    this.events.on('updatefindcontrolstate', ({ state, matchesCount }: { state: number; matchesCount: { current: number; total: number } }) => {
+      findState = state;
+      onFind?.({ ...matchesCount, pending: state === FindState.PENDING });
+    });
+    this.events.on('updatefindmatchescount', ({ matchesCount }: { matchesCount: { current: number; total: number } }) => {
+      onFind?.({ ...matchesCount, pending: findState === FindState.PENDING });
+    });
     new ResizeObserver(() => {
       const value = this.viewer.currentScaleValue;
       if (value === 'page-width' || value === 'page-fit') this.viewer.currentScaleValue = value;
@@ -62,6 +77,7 @@ export class Reader {
       pages: this.viewer.pagesCount,
       scale: this.viewer.currentScale,
       scaleValue: this.viewer.currentScaleValue || 'page-width',
+      layout: this.viewer.scrollMode === ScrollMode.HORIZONTAL ? 'horizontal' : 'vertical',
     };
   }
 
@@ -89,6 +105,7 @@ export class Reader {
       if (page) this.active.view = {
         page: this.state.page,
         scale: this.state.scaleValue,
+        layout: this.state.layout,
         point: page.getPagePoint(this.container.scrollLeft - page.div.offsetLeft, this.container.scrollTop - page.div.offsetTop),
       };
     }
@@ -102,6 +119,7 @@ export class Reader {
     const ready = new Promise<void>(resolve => {
       initialized = () => {
         const view = document.view;
+        this.viewer.scrollMode = view?.layout === 'horizontal' ? ScrollMode.HORIZONTAL : ScrollMode.VERTICAL;
         this.viewer.currentScaleValue = view?.scale || 'page-width';
         if (view) this.viewer.scrollPageIntoView({
           pageNumber: view.page,
@@ -132,6 +150,29 @@ export class Reader {
     if (Number.isInteger(page) && page >= 1 && page <= this.viewer.pagesCount) {
       this.viewer.currentPageNumber = page;
     }
+  }
+
+  setLayout(layout: ReadingLayout): void {
+    const page = this.viewer.currentPageNumber;
+    this.viewer.scrollMode = layout === 'horizontal' ? ScrollMode.HORIZONTAL : ScrollMode.VERTICAL;
+    this.viewer.currentPageNumber = page;
+  }
+
+  find(query: string, again = false, previous = false): void {
+    this.events.dispatch('find', {
+      source: this,
+      type: again ? 'again' : '',
+      query,
+      caseSensitive: false,
+      entireWord: false,
+      highlightAll: true,
+      findPrevious: previous,
+      matchDiacritics: false,
+    });
+  }
+
+  closeFind(): void {
+    this.events.dispatch('findbarclose', { source: this });
   }
 
   zoom(value: string): void {

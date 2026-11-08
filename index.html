@@ -17,6 +17,7 @@
             <i data-lucide="folder-open" aria-hidden="true"></i><span>Open</span>
           </button>
           <span id="filename" class="filename">FolioPDF</span>
+          <button id="find-toggle" aria-label="Find in document" title="Find in document (Ctrl+F)" aria-controls="find-bar" aria-expanded="false" disabled><i data-lucide="search" aria-hidden="true"></i></button>
         </div>
         <div class="page-tools" role="group" aria-label="Page navigation">
           <button id="previous" aria-label="Previous page" title="Previous page" disabled><i data-lucide="chevron-left" aria-hidden="true"></i></button>
@@ -40,7 +41,18 @@
           </select>
           <button id="zoom-in" aria-label="Zoom in" title="Zoom in (Ctrl++)" disabled><i data-lucide="plus" aria-hidden="true"></i></button>
         </div>
+        <div class="layout-tools" role="group" aria-label="Page direction">
+          <button id="layout-vertical" aria-label="Vertical pages" title="Vertical pages" aria-pressed="true" disabled><i data-lucide="rows-2" aria-hidden="true"></i></button>
+          <button id="layout-horizontal" aria-label="Horizontal pages" title="Horizontal pages" aria-pressed="false" disabled><i data-lucide="columns-2" aria-hidden="true"></i></button>
+        </div>
       </header>
+      <section id="find-bar" class="find-bar" role="search" aria-label="Find in document" hidden>
+        <input id="find-query" type="search" aria-label="Find text" placeholder="Find in this PDF" autocomplete="off" spellcheck="false" />
+        <span id="find-count" role="status" aria-live="polite"></span>
+        <button id="find-previous" aria-label="Previous match" title="Previous match (Shift+Enter)" disabled><i data-lucide="arrow-up" aria-hidden="true"></i></button>
+        <button id="find-next" aria-label="Next match" title="Next match (Enter)" disabled><i data-lucide="arrow-down" aria-hidden="true"></i></button>
+        <button id="find-close" aria-label="Close search" title="Close search (Esc)"><i data-lucide="x" aria-hidden="true"></i></button>
+      </section>
       <main id="document-area" aria-label="PDF document" aria-busy="false">
         <div id="viewer-container" role="tabpanel" hidden><div id="viewer" class="pdfViewer"></div></div>
         <section id="empty-state" class="empty-state">

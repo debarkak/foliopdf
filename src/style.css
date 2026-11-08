@@ -32,7 +32,13 @@ button svg { width: 16px; height: 16px; stroke-width: 1.7; }
 .document-tab .close-tab { width: 24px; min-width: 24px; height: 24px; margin: 0 4px 0 auto; padding: 4px; }
 .close-tab svg { width: 13px; height: 13px; }
 .toolbar { min-height: 43px; padding: 5px 12px; display: flex; align-items: center; gap: 16px; background: var(--surface); border-bottom: 1px solid var(--line); flex-wrap: wrap; }
-.file-tools, .page-tools, .zoom-tools { display: flex; align-items: center; gap: 4px; }
+.file-tools, .page-tools, .zoom-tools, .layout-tools { display: flex; align-items: center; gap: 4px; }
+.layout-tools { padding-left: 12px; border-left: 1px solid var(--line); }
+.layout-tools [aria-pressed="true"] { background: var(--hover); color: var(--accent); }
+.find-bar { display: flex; align-items: center; gap: 5px; padding: 5px 12px; border-bottom: 1px solid var(--line); background: var(--surface); }
+#find-query { width: min(260px, 45vw); min-width: 80px; height: 28px; border: 1px solid var(--line); border-radius: 6px; padding: 3px 8px; background: var(--canvas); color: var(--text); }
+#find-count { min-width: 70px; margin-right: auto; color: var(--muted); font-size: 12px; white-space: nowrap; }
+@media (forced-colors: none) { .textLayer .highlight { --highlight-bg-color: rgb(236 196 81 / .35); --highlight-selected-bg-color: rgb(88 148 92 / .4); } }
 .file-tools { flex: 1; min-width: 120px; }
 .filename { font-size: 12px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 300px; }
 .open-button { padding-inline: 10px; margin-right: 8px; background: var(--hover); }
@@ -45,6 +51,8 @@ button svg { width: 16px; height: 16px; stroke-width: 1.7; }
 #viewer-container { position: absolute; inset: 0; overflow: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--muted) 48%, var(--canvas)) var(--canvas); }
 #viewer { padding: 18px 0; }
 .pdfViewer .page { border: 0; margin-bottom: 18px; box-shadow: 0 1px 3px #0002, 0 5px 18px #0000000d; }
+.pdfViewer.scrollHorizontal { margin-inline: 0; padding: 18px 9px; }
+.pdfViewer.scrollHorizontal .page { margin: 0 9px; vertical-align: top; }
 .empty-state { height: 100%; display: grid; place-items: center; padding: 24px; }
 .empty-content { display: flex; flex-direction: column; align-items: center; text-align: center; }
 .book-symbol { display: grid; place-items: center; width: 64px; height: 64px; border-radius: 20px; color: var(--accent); background: var(--hover); margin-bottom: 22px; }

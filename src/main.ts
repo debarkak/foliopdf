@@ -1,9 +1,10 @@
-import { createElement, createIcons, BookOpen, ChevronLeft, ChevronRight, FolderOpen, Minus, Plus, X } from 'lucide';
+import { createElement, createIcons, ArrowDown, ArrowUp, BookOpen, ChevronLeft, ChevronRight, Columns2, FolderOpen, Minus, Plus, Rows2, Search, X } from 'lucide';
 import 'pdfjs-dist/web/pdf_viewer.css';
 import './style.css';
 import './updates';
 import { pickPdf } from './platform';
 import { Reader, type ReaderDocument, type ReaderState } from './reader';
+import { FindBar } from './find';
 
 function element<T extends HTMLElement>(id: string): T {
   const value = document.getElementById(id);
@@ -11,7 +12,7 @@ function element<T extends HTMLElement>(id: string): T {
   return value as T;
 }
 
-createIcons({ icons: { BookOpen, ChevronLeft, ChevronRight, FolderOpen, Minus, Plus } });
+createIcons({ icons: { ArrowDown, ArrowUp, BookOpen, ChevronLeft, ChevronRight, Columns2, FolderOpen, Minus, Plus, Rows2, Search, X } });
 const container = element<HTMLDivElement>('viewer-container');
 const pageNumber = element<HTMLInputElement>('page-number');
 const zoom = element<HTMLSelectElement>('zoom');
@@ -32,9 +33,16 @@ const tabs: Tab[] = [];
 let active: Tab | null = null;
 let nextId = 1;
 let busy = false;
+let findBar: FindBar | null = null;
+const vertical = element<HTMLButtonElement>('layout-vertical');
+const horizontal = element<HTMLButtonElement>('layout-horizontal');
 
 function update(state: ReaderState): void {
   const available = !!active && state.pages > 0 && !busy;
+  findBar?.setAvailable(available);
+  vertical.disabled = horizontal.disabled = !available;
+  vertical.setAttribute('aria-pressed', String(state.layout === 'vertical'));
+  horizontal.setAttribute('aria-pressed', String(state.layout === 'horizontal'));
   pageNumber.value = String(state.page);
   pageNumber.max = String(state.pages || 1);
   element('page-count').textContent = `/ ${state.pages}`;
@@ -51,7 +59,10 @@ function update(state: ReaderState): void {
   if (available) status.textContent = `Page ${state.page} of ${state.pages}`;
 }
 
-const reader = new Reader(container, update);
+const reader = new Reader(container, update, result => findBar?.update(result));
+findBar = new FindBar(reader);
+vertical.addEventListener('click', () => reader.setLayout('vertical'));
+horizontal.addEventListener('click', () => reader.setLayout('horizontal'));
 
 function renderTabs(): void {
   element('tabs-bar').hidden = tabs.length === 0;
@@ -130,6 +141,7 @@ async function open(): Promise<void> {
     empty.hidden = true;
     container.hidden = false;
     pending = await reader.load(file.data);
+    findBar?.reset();
     await reader.show(pending);
     active = { id: nextId++, name: file.name, document: pending };
     tabs.push(active);
@@ -152,7 +164,7 @@ async function activate(tab: Tab): Promise<void> {
   const previousTab = active;
   setBusy(true);
   try {
-    if (tab !== active) await reader.show(tab.document);
+    if (tab !== active) { findBar?.reset(); await reader.show(tab.document); }
     active = tab;
   } catch (error) {
     await reader.show(previousTab?.document || null);
@@ -170,6 +182,7 @@ async function closeTab(tab: Tab): Promise<void> {
   try {
     const index = tabs.indexOf(tab);
     if (tab === active) {
+      findBar?.reset();
       const neighbor = tabs[index + 1] || tabs[index - 1] || null;
       await reader.show(neighbor?.document || null);
       active = neighbor;
