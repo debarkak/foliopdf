@@ -1,57 +1,53 @@
 name: Linux packages
-
 on:
   workflow_dispatch:
-
 permissions:
-  contents: read
-
+  actions: read
+  contents: write
 jobs:
-  package:
-    runs-on: ubuntu-22.04
-    timeout-minutes: 35
+  deliver:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
     env:
-      CARGO_BUILD_JOBS: 2
-      APPIMAGE_EXTRACT_AND_RUN: 1
+      GH_TOKEN: ${{ github.token }}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
-          node-version: 22
-          cache: npm
-      - name: Install Linux build dependencies
+          ref: v1.0.5
+      - name: Collect and publish release packages
+        shell: bash
         run: |
-          sudo apt-get update
-          sudo apt-get install -y build-essential pkg-config libwebkit2gtk-4.1-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev patchelf libfuse2 webkit2gtk-driver xdotool xvfb xauth dbus-x11
-          rustup update stable --no-self-update
-          rustup default stable
-      - run: npm ci
-      - name: Check the reader
-        run: |
-          npx playwright install --with-deps chromium
-          npm test
-      - name: Build Debian and AppImage packages
-        env:
-          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
-          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
-        run: npm run tauri build -- --bundles deb,appimage
-      - name: Check the native Linux reader
-        run: |
-          cargo install tauri-driver --locked
-          xvfb-run -a dbus-run-session -- node scripts/smoke-linux.mjs src-tauri/target/release/foliopdf "$RUNNER_TEMP/reader-qa"
-      - name: Prepare traditional archive
-        run: |
-          version=$(node -p 'require("./package.json").version')
-          directory="FolioPDF-$version-linux-x86_64"
-          mkdir -p "$RUNNER_TEMP/$directory"
-          cp src-tauri/target/release/foliopdf LICENSE README.md public/THIRD-PARTY-NOTICES.txt "$RUNNER_TEMP/$directory/"
-          tar -C "$RUNNER_TEMP" -czf "src-tauri/target/release/$directory.tar.gz" "$directory"
-      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: linux-packages
-          path: |
-            src-tauri/target/release/bundle/deb/*.deb
-            src-tauri/target/release/bundle/appimage/*.AppImage
-            src-tauri/target/release/bundle/appimage/*.sig
-            src-tauri/target/release/FolioPDF-*-linux-x86_64.tar.gz
-            ${{ runner.temp }}/reader-qa/reader.png
+          set -euo pipefail
+          mkdir -p /tmp/artifacts/linux /tmp/artifacts/windows /tmp/release
+          gh run download 42463382137 --repo "$GITHUB_REPOSITORY" --name linux-packages --dir /tmp/artifacts/linux
+          gh run download 42463384966 --repo "$GITHUB_REPOSITORY" --name windows-packages --dir /tmp/artifacts/windows
+          names=(FolioPDF_1.0.5_x64-setup.exe FolioPDF-1.0.5-windows-x64.zip FolioPDF_1.0.5_amd64.deb FolioPDF_1.0.5_amd64.AppImage FolioPDF-1.0.5-linux-x86_64.tar.gz FolioPDF_1.0.5_x64-setup.exe.sig FolioPDF_1.0.5_amd64.AppImage.sig)
+          for name in "${names[@]}"; do
+            mapfile -t found < <(find /tmp/artifacts -type f -name "$name")
+            test "${#found[@]}" -eq 1
+            cp "${found[0]}" /tmp/release/
+          done
+          printf '%s\n' 'rotate PDF pages while reading, with each tab keeping its own rotation.' > /tmp/update-notes.txt
+          printf "%s\n" "## what's new" '' '- rotate pages clockwise while reading' '- each tab keeps its own rotation' '- rotation changes the view without modifying your PDF' '' 'Windows setup and Linux AppImage can update from Settings. other builds can be downloaded below.' > /tmp/release-notes.md
+          node scripts/update-manifest.mjs /tmp/release /tmp/release/FolioPDF_1.0.5_x64-setup.exe /tmp/release/FolioPDF_1.0.5_amd64.AppImage /tmp/update-notes.txt
+          cd /tmp/release
+          sha256sum "${names[@]}" latest.json > SHA256SUMS.txt
+          gh release create v1.0.5 "${names[@]}" SHA256SUMS.txt --repo "$GITHUB_REPOSITORY" --draft --verify-tag --title 'FolioPDF 1.0.5 (2026-11-08)' --notes-file /tmp/release-notes.md
+          verify() {
+            gh api "repos/$GITHUB_REPOSITORY/releases" > /tmp/releases.json
+            python3 - "$1" <<'PY'
+          import hashlib, json, os, sys
+          releases = json.load(open('/tmp/releases.json'))
+          release = next(r for r in releases if r['tag_name'] == 'v1.0.5')
+          assert release['draft'] and len(release['assets']) == int(sys.argv[1])
+          for asset in release['assets']:
+              with open(asset['name'], 'rb') as f:
+                  digest = hashlib.file_digest(f, 'sha256').hexdigest()
+              assert asset['size'] == os.path.getsize(asset['name'])
+              assert asset['digest'] == 'sha256:' + digest, asset['name']
+          PY
+          }
+          verify 8
+          gh release upload v1.0.5 latest.json --repo "$GITHUB_REPOSITORY"
+          verify 9
+          gh release edit v1.0.5 --repo "$GITHUB_REPOSITORY" --draft=false --latest
