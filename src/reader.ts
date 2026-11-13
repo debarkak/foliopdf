@@ -190,6 +190,14 @@ export class Reader {
     if (this.viewer.currentPageNumber !== page) this.viewer.currentPageNumber = page;
   }
 
+  zoomGesture(scale: number, origin: [number, number]): void {
+    this.viewer.updateScale({
+      scaleFactor: scale / this.viewer.currentScale,
+      origin,
+      drawingDelay: 150,
+    });
+  }
+
   stepZoom(direction: 1 | -1): void {
     const steps = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 2, 3, 4];
     const current = this.viewer.currentScale;

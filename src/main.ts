@@ -37,6 +37,7 @@ const loading = element('loading');
 const filename = element('filename');
 const errorDialog = element<HTMLDialogElement>('error-dialog');
 const tabList = element('document-tabs');
+const pageCount = element('page-count');
 const newTab = element<HTMLButtonElement>('new-tab');
 interface Tab { id: number; name: string; document: ReaderDocument }
 const tabs: Tab[] = [];
@@ -52,8 +53,33 @@ const saveButton = element<HTMLButtonElement>('save');
 const highlightTool = element<HTMLButtonElement>('highlight-tool');
 const printButton = element<HTMLButtonElement>('print');
 
+let previousControls: { available: boolean; page: number; pages: number; layout: ReaderState['layout'] } | undefined;
+const customZoomOption = new Option();
+customZoomOption.dataset.custom = '';
+const zoomPresets = new Set(Array.from(zoom.options, option => option.value));
+
 function update(state: ReaderState): void {
   const available = !!active && state.pages > 0 && !busy;
+  if (!previousControls || previousControls.available !== available ||
+      previousControls.page !== state.page || previousControls.pages !== state.pages ||
+      previousControls.layout !== state.layout) {
+    updateReaderControls(state, available);
+    previousControls = { available, page: state.page, pages: state.pages, layout: state.layout };
+  }
+
+  if (zoom.value !== state.scaleValue) {
+    if (zoomPresets.has(state.scaleValue)) {
+      customZoomOption.remove();
+    } else {
+      customZoomOption.text = `${Math.round(state.scale * 100)}%`;
+      customZoomOption.value = state.scaleValue;
+      if (!customZoomOption.parentElement) zoom.add(customZoomOption);
+    }
+    zoom.value = state.scaleValue;
+  }
+}
+
+function updateReaderControls(state: ReaderState, available: boolean): void {
   findBar?.setAvailable(available);
   vertical.disabled = horizontal.disabled = rotate.disabled = !available;
   textTool.disabled = saveButton.disabled = highlightTool.disabled = printButton.disabled = !available;
@@ -61,17 +87,10 @@ function update(state: ReaderState): void {
   horizontal.setAttribute('aria-pressed', String(state.layout === 'horizontal'));
   pageNumber.value = String(state.page);
   pageNumber.max = String(state.pages || 1);
-  element('page-count').textContent = `/ ${state.pages}`;
+  pageCount.textContent = `/ ${state.pages}`;
   pageNumber.disabled = zoom.disabled = zoomIn.disabled = zoomOut.disabled = !available;
   previous.disabled = !available || state.page <= 1;
   next.disabled = !available || state.page >= state.pages;
-  zoom.querySelector('option[data-custom]')?.remove();
-  if (![...zoom.options].some(option => option.value === state.scaleValue)) {
-    const option = new Option(`${Math.round(state.scale * 100)}%`, state.scaleValue);
-    option.dataset.custom = '';
-    zoom.add(option);
-  }
-  zoom.value = state.scaleValue;
   if (available) status.textContent = `Page ${state.page} of ${state.pages}`;
 }
 
@@ -174,12 +193,16 @@ function errorMessage(error: unknown): string {
 }
 
 async function open(): Promise<void> {
+  await openDocument(() => pickPdf(element<HTMLInputElement>('file-input')));
+}
+
+async function openDocument(getFile: () => ReturnType<typeof pickPdf>): Promise<void> {
   if (busy) return;
   setBusy(true);
   const previousTab = active;
   let pending: ReaderDocument | null = null;
   try {
-    const file = await pickPdf(element<HTMLInputElement>('file-input'));
+    const file = await getFile();
     if (!file) return;
     status.textContent = 'Opening PDF…';
     loading.hidden = false;
@@ -294,6 +317,25 @@ window.addEventListener('keyup', event => {
   if (event.key === 'Control') heldControlKeys.delete(event.code);
 });
 window.addEventListener('blur', () => heldControlKeys.clear());
+let gestureFrame = 0;
+let gestureTab: Tab | null = null;
+let gestureScale = 1;
+let gestureOrigin: [number, number] = [0, 0];
+
+function queueGestureZoom(factor: number, x: number, y: number): void {
+  if (gestureTab !== active || (!gestureFrame && Math.abs(gestureScale - reader.state.scale) >= 0.005)) {
+    gestureScale = reader.state.scale;
+  }
+  gestureTab = active;
+  gestureScale = Math.max(0.25, Math.min(4, gestureScale * factor));
+  gestureOrigin = [x, y];
+  if (gestureFrame) return;
+  gestureFrame = requestAnimationFrame(() => {
+    gestureFrame = 0;
+    if (gestureTab === active && !busy) reader.zoomGesture(gestureScale, gestureOrigin);
+  });
+}
+
 container.addEventListener('wheel', event => {
   if (!active || busy || !event.ctrlKey) return;
   event.preventDefault();
@@ -301,8 +343,12 @@ container.addEventListener('wheel', event => {
   if (!enabled || !event.deltaY) return;
   const unit = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? container.clientHeight : 1;
   const delta = Math.max(-120, Math.min(120, event.deltaY * unit));
-  const scale = Math.max(0.25, Math.min(4, reader.state.scale * Math.exp(-delta / 300)));
-  reader.zoom(String(scale));
+  const factor = Math.exp(-delta / 300);
+  if (heldControlKeys.size) {
+    reader.zoom(String(Math.max(0.25, Math.min(4, reader.state.scale * factor))));
+  } else {
+    queueGestureZoom(factor, event.clientX, event.clientY);
+  }
 }, { passive: false });
 let pinchDistance = 0;
 container.addEventListener('touchstart', event => {
@@ -310,8 +356,13 @@ container.addEventListener('touchstart', event => {
 }, { passive: true });
 container.addEventListener('touchmove', event => {
   if (!active || busy || !pinchToggle.checked || event.touches.length !== 2 || !pinchDistance) return;
-  const distance = Math.hypot(event.touches[0].clientX - event.touches[1].clientX, event.touches[0].clientY - event.touches[1].clientY);
-  if (Math.abs(distance - pinchDistance) > 12) { reader.stepZoom(distance > pinchDistance ? 1 : -1); pinchDistance = distance; }
+  const first = event.touches[0];
+  const second = event.touches[1];
+  const distance = Math.hypot(first.clientX - second.clientX, first.clientY - second.clientY);
+  if (distance > 0) {
+    queueGestureZoom(distance / pinchDistance, (first.clientX + second.clientX) / 2, (first.clientY + second.clientY) / 2);
+    pinchDistance = distance;
+  }
   event.preventDefault();
 }, { passive: false });
 for (const event of ['touchend', 'touchcancel']) {
@@ -340,3 +391,13 @@ document.addEventListener('keydown', event => {
   if (event.key === '-' || event.key === 'Subtract') { event.preventDefault(); reader.stepZoom(-1); }
   if (event.key === '0') { event.preventDefault(); reader.zoom('1'); }
 });
+
+if (isTauri()) {
+  void invoke<string | null>('startup_pdf_name').then(name => {
+    if (!name) return;
+    return openDocument(async () => ({
+      name,
+      data: new Uint8Array(await invoke<ArrayBuffer>('read_startup_pdf')),
+    }));
+  }).catch(report);
+}

@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name={{name}}
+{{#if comment}}
+Comment={{comment}}
+{{/if}}
+Exec={{exec}} %f
+Icon={{icon}}
+Terminal=false
+Categories={{categories}}
+MimeType=application/pdf;

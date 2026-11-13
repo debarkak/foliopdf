@@ -29,6 +29,33 @@ fn enable_backdrop(window: tauri::WebviewWindow) -> bool {
     { let _ = window; false }
 }
 
+fn startup_pdf_path() -> Option<std::path::PathBuf> {
+    let path = std::path::PathBuf::from(std::env::args_os().nth(1)?);
+    path.extension()
+        .is_some_and(|extension| extension.eq_ignore_ascii_case("pdf"))
+        .then_some(path)
+}
+
+#[tauri::command]
+fn startup_pdf_name() -> Option<String> {
+    Some(startup_pdf_path()?.file_name()?.to_string_lossy().into_owned())
+}
+
+#[tauri::command]
+async fn read_startup_pdf() -> Result<tauri::ipc::Response, String> {
+    tauri::async_runtime::spawn_blocking(|| {
+        let path = startup_pdf_path().ok_or("No PDF supplied")?;
+        if !path.is_file() {
+            return Err("The PDF is not a readable file".to_string());
+        }
+        std::fs::read(path)
+            .map(tauri::ipc::Response::new)
+            .map_err(|error| error.to_string())
+    })
+    .await
+    .map_err(|error| error.to_string())?
+}
+
 fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
@@ -36,7 +63,7 @@ fn main() {
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![update_install_supported, enable_backdrop])
+        .invoke_handler(tauri::generate_handler![update_install_supported, enable_backdrop, startup_pdf_name, read_startup_pdf])
         .run(tauri::generate_context!())
         .expect("failed to start foliopdf");
 }
