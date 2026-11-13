@@ -16,6 +16,11 @@ Ctrl+Home / Ctrl+End to jump to the first / last page.
 to add text, choose the type tool and click a page. save the changes as an
 edited copy so the original PDF stays as it is.
 
+## docs
+
+- [user guide](docs/user-guide.md)
+- [developer guide](docs/developer-guide.md)
+
 ## download
 
 get the latest build from [GitHub Releases](https://github.com/debarkak/foliopdf/releases).

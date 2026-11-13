@@ -24,8 +24,9 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px s
 button svg { width: 16px; height: 16px; stroke-width: 1.7; }
 [hidden] { display: none !important; }
 #app { height: 100dvh; display: flex; flex-direction: column; }
-.tabs-bar { flex-shrink: 0; padding: 3px 10px 0; background: var(--surface); border-bottom: 1px solid var(--line); }
-.document-tabs { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: thin; scrollbar-color: var(--line) transparent; }
+.tabs-bar { display: flex; align-items: center; gap: 4px; flex-shrink: 0; padding: 3px 10px 0; background: var(--surface); border-bottom: 1px solid var(--line); }
+.document-tabs { min-width: 0; display: flex; gap: 4px; overflow-x: auto; scrollbar-width: thin; scrollbar-color: var(--line) transparent; }
+#new-tab { flex-shrink: 0; }
 .document-tab { display: flex; flex: 0 0 auto; align-items: center; max-width: 240px; min-width: 120px; border-bottom: 2px solid transparent; border-radius: 6px 6px 0 0; }
 .document-tab.is-active { background: var(--hover); border-bottom-color: var(--accent); }
 .document-tab [role="tab"] { display: block; min-width: 0; max-width: 206px; height: 29px; padding: 4px 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left; font-size: 12px; }

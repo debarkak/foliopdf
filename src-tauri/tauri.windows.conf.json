@@ -9,7 +9,8 @@
         "minWidth": 460,
         "minHeight": 360,
         "dragDropEnabled": false,
-        "transparent": true
+        "transparent": true,
+        "zoomHotkeysEnabled": true
       }
     ]
   }

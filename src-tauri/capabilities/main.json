@@ -6,6 +6,6 @@
   "permissions": [
     "core:default", "dialog:allow-open", "fs:allow-read-file",
     "updater:default", "process:allow-restart",
-    { "identifier": "opener:allow-open-url", "allow": [{ "url": "https://github.com/debarkak/foliopdf/releases/latest" }] }
+    { "identifier": "opener:allow-open-url", "allow": [{ "url": "https://github.com/debarkak/foliopdf/releases/latest" }, { "url": "https://github.com/debarkak/foliopdf/blob/main/docs/user-guide.md" }] }
   ]
 }

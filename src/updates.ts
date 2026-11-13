@@ -17,7 +17,17 @@ const back = document.querySelector<HTMLButtonElement>('#settings-back')!;
 const home = document.querySelector<HTMLElement>('#settings-home')!;
 const appearancePage = document.querySelector<HTMLElement>('#settings-appearance-page')!;
 const gesturePage = document.querySelector<HTMLElement>('#settings-gestures-page')!;
-const helpPage = document.querySelector<HTMLElement>('#settings-help-page')!;
+const userGuideUrl = 'https://github.com/debarkak/foliopdf/blob/main/docs/user-guide.md';
+const helpError = document.querySelector<HTMLElement>('#help-error')!;
+document.querySelector<HTMLButtonElement>('#settings-help')!.addEventListener('click', async () => {
+  helpError.hidden = true;
+  try {
+    if (isTauri()) await openUrl(userGuideUrl);
+    else window.open(userGuideUrl, '_blank', 'noopener,noreferrer');
+  } catch {
+    helpError.hidden = false;
+  }
+});
 const aboutPage = document.querySelector<HTMLElement>('#settings-about-page')!;
 let update: Update | null = null;
 let canInstall = false;
@@ -36,20 +46,19 @@ async function release(): Promise<void> {
   await old?.close();
 }
 
-function showPage(page: 'home' | 'appearance' | 'gestures' | 'help' | 'about'): void {
+function showPage(page: 'home' | 'appearance' | 'gestures' | 'about'): void {
+  helpError.hidden = true;
   home.hidden = page !== 'home';
   appearancePage.hidden = page !== 'appearance';
   gesturePage.hidden = page !== 'gestures';
-  helpPage.hidden = page !== 'help';
   aboutPage.hidden = page !== 'about';
   back.hidden = page === 'home';
 }
 document.querySelector<HTMLButtonElement>('#settings-appearance')!.addEventListener('click', () => { showPage('appearance'); back.focus(); });
 document.querySelector<HTMLButtonElement>('#settings-about')!.addEventListener('click', () => { showPage('about'); back.focus(); });
 document.querySelector<HTMLButtonElement>('#settings-gestures')!.addEventListener('click', () => { showPage('gestures'); back.focus(); });
-document.querySelector<HTMLButtonElement>('#settings-help')!.addEventListener('click', () => { showPage('help'); back.focus(); });
 function returnToSettings(): void {
-  const previous = !appearancePage.hidden ? '#settings-appearance' : !gesturePage.hidden ? '#settings-gestures' : !helpPage.hidden ? '#settings-help' : '#settings-about';
+  const previous = !appearancePage.hidden ? '#settings-appearance' : !gesturePage.hidden ? '#settings-gestures' : '#settings-about';
   showPage('home');
   document.querySelector<HTMLButtonElement>(previous)!.focus();
 }

@@ -10,6 +10,7 @@
     <div id="app">
       <div id="tabs-bar" class="tabs-bar" hidden>
         <div id="document-tabs" class="document-tabs" role="tablist" aria-label="Open documents"></div>
+        <button id="new-tab" aria-label="Open PDF in a new tab" title="Open PDF in a new tab (Ctrl+O)"><i data-lucide="plus" aria-hidden="true"></i></button>
       </div>
       <header class="toolbar" aria-label="Reader toolbar">
         <div class="file-tools">
@@ -80,9 +81,10 @@
         <div id="settings-home" class="settings-menu">
           <button id="settings-appearance" class="settings-item"><span><strong>Appearance</strong><small>Theme and color</small></span><i data-lucide="chevron-right" aria-hidden="true"></i></button>
           <button id="settings-gestures" class="settings-item"><span><strong>Reading &amp; gestures</strong><small>Zoom shortcuts and trackpad gestures</small></span><i data-lucide="chevron-right" aria-hidden="true"></i></button>
-          <button id="settings-help" class="settings-item"><span><strong>Help</strong><small>Controls and keyboard shortcuts</small></span><i data-lucide="chevron-right" aria-hidden="true"></i></button>
+          <button id="settings-help" class="settings-item"><span><strong>Help</strong><small>Open the user guide</small></span><i data-lucide="chevron-right" aria-hidden="true"></i></button>
           <button id="settings-about" class="settings-item"><span><strong>About &amp; updates</strong><small>Version and updates</small></span><i data-lucide="chevron-right" aria-hidden="true"></i></button>
         </div>
+        <p id="help-error" role="status" hidden>Could not open the user guide.</p>
         <button id="settings-back" class="settings-back" hidden><i data-lucide="chevron-left" aria-hidden="true"></i>Settings</button>
         <section id="settings-appearance-page" class="settings-section" aria-labelledby="appearance-title" hidden>
           <div class="section-heading"><span class="section-number">01</span><h3 id="appearance-title">Appearance</h3></div>
@@ -100,12 +102,8 @@
         </section>
         <section id="settings-gestures-page" class="settings-section" aria-labelledby="gestures-title" hidden>
           <div class="section-heading"><span class="section-number">02</span><h3 id="gestures-title">Reading &amp; gestures</h3></div>
-          <label class="setting-toggle"><span><strong>Pinch to zoom</strong><small>Use a trackpad pinch gesture to zoom.</small></span><input id="gesture-pinch" type="checkbox" checked /></label>
+          <label class="setting-toggle"><span><strong>Pinch to zoom</strong><small>Use a touchpad pinch gesture to zoom the document.</small></span><input id="gesture-pinch" type="checkbox" checked /></label>
           <label class="setting-toggle"><span><strong>Ctrl + mouse wheel</strong><small>Zoom while holding Ctrl and scrolling.</small></span><input id="gesture-wheel" type="checkbox" checked /></label>
-        </section>
-        <section id="settings-help-page" class="settings-section" aria-labelledby="help-title" hidden>
-          <div class="section-heading"><span class="section-number">03</span><h3 id="help-title">Help</h3></div>
-          <dl class="shortcuts"><dt>Open PDF</dt><dd>Ctrl + O</dd><dt>Zoom in / out</dt><dd>Ctrl + + / −</dd><dt>Actual size</dt><dd>Ctrl + 0</dd><dt>Find</dt><dd>Ctrl + F</dd><dt>Switch tabs</dt><dd>Ctrl + Tab</dd></dl>
         </section>
         <section id="settings-about-page" class="settings-section" aria-labelledby="updates-title" hidden>
           <div class="section-heading"><span class="section-number">04</span><h3 id="updates-title">About &amp; updates</h3></div>

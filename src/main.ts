@@ -37,6 +37,7 @@ const loading = element('loading');
 const filename = element('filename');
 const errorDialog = element<HTMLDialogElement>('error-dialog');
 const tabList = element('document-tabs');
+const newTab = element<HTMLButtonElement>('new-tab');
 interface Tab { id: number; name: string; document: ReaderDocument }
 const tabs: Tab[] = [];
 let active: Tab | null = null;
@@ -152,7 +153,7 @@ function render(): void {
 
 function setBusy(value: boolean): void {
   busy = value;
-  openButton.disabled = emptyButton.disabled = value;
+  openButton.disabled = emptyButton.disabled = newTab.disabled = value;
   element('document-area').setAttribute('aria-busy', String(value));
   update(reader.state);
   renderTabs();
@@ -258,6 +259,7 @@ tabList.addEventListener('keydown', event => {
 });
 
 openButton.addEventListener('click', open);
+newTab.addEventListener('click', open);
 emptyButton.addEventListener('click', open);
 previous.addEventListener('click', () => reader.goTo(reader.state.page - 1));
 next.addEventListener('click', () => reader.goTo(reader.state.page + 1));
