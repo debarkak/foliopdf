@@ -22,3 +22,9 @@ See the [downloads and platform requirements](../README.md#download).
 ## Default PDF app
 
 On Windows, install FolioPDF using the setup installer. In **Settings → Apps → Default apps**, search for `.pdf` and select FolioPDF. On Linux, install the Debian package and select FolioPDF under **Open With** in your file manager. An AppImage needs desktop integration to appear in that list.
+
+## Home tabs, history, and document details
+
+Click **+** to open a Home tab. Open a PDF from there or choose a file under **Recent PDFs**. On desktop, FolioPDF stores recent file paths locally. **Settings → History** lets you change how many days are kept. Turning history off clears the list.
+
+Click the information icon in the toolbar to see the file size, page count, and embedded PDF metadata. Enable **Settings → Appearance → Toolbar labels** to show text beside toolbar icons.

@@ -11,8 +11,12 @@ test('Help opens the user guide and plus opens another PDF tab', async ({ page }
 
   for (const [name, button] of [
     ['first.pdf', page.getByRole('button', { name: 'Open', exact: true })],
-    ['second.pdf', page.getByRole('button', { name: 'Open PDF in a new tab' })],
+    ['second.pdf', page.locator('#open-empty')],
   ] as const) {
+    if (name === 'second.pdf') {
+      await page.getByRole('button', { name: 'New tab', exact: true }).click();
+      await expect(page.getByRole('tab', { name: 'Home', exact: true })).toHaveAttribute('aria-selected', 'true');
+    }
     const chooser = page.waitForEvent('filechooser');
     await button.click();
     await (await chooser).setFiles({ name, mimeType: 'application/pdf', buffer: makePdf(name) });

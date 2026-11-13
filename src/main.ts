@@ -1,10 +1,12 @@
-import { createElement, createIcons, ArrowDown, ArrowUp, BookOpen, CaseSensitive, ChevronLeft, ChevronRight, Columns2, FolderOpen, Highlighter, Minus, Plus, Printer, RotateCw, Rows2, Search, Settings2, WholeWord, X, Type, Save } from 'lucide';
+import { createElement, createIcons, ArrowDown, ArrowUp, BookOpen, CaseSensitive, ChevronLeft, ChevronRight, Columns2, FolderOpen, Highlighter, Info, Minus, Plus, Printer, RotateCw, Rows2, Search, Settings2, WholeWord, X, Type, Save } from 'lucide';
 import 'pdfjs-dist/web/pdf_viewer.css';
 import '@fontsource-variable/open-sans';
 import './style.css';
 import './updates';
 import './appearance';
 import './titlebar';
+import './toolbar-labels';
+import { initHistory, rememberPdf } from './history';
 import { isTauri, invoke } from '@tauri-apps/api/core';
 
 if (isTauri()) {
@@ -22,7 +24,7 @@ function element<T extends HTMLElement>(id: string): T {
   return value as T;
 }
 
-createIcons({ icons: { ArrowDown, ArrowUp, BookOpen, CaseSensitive, ChevronLeft, ChevronRight, Columns2, FolderOpen, Highlighter, Minus, Plus, Printer, RotateCw, Rows2, Search, Settings2, WholeWord, X, Type, Save } });
+createIcons({ icons: { ArrowDown, ArrowUp, BookOpen, CaseSensitive, ChevronLeft, ChevronRight, Columns2, FolderOpen, Highlighter, Info, Minus, Plus, Printer, RotateCw, Rows2, Search, Settings2, WholeWord, X, Type, Save } });
 const container = element<HTMLDivElement>('viewer-container');
 const pageNumber = element<HTMLInputElement>('page-number');
 const zoom = element<HTMLSelectElement>('zoom');
@@ -40,7 +42,7 @@ const errorDialog = element<HTMLDialogElement>('error-dialog');
 const tabList = element('document-tabs');
 const pageCount = element('page-count');
 const newTab = element<HTMLButtonElement>('new-tab');
-interface Tab { id: number; name: string; document: ReaderDocument }
+interface Tab { id: number; name: string; document: ReaderDocument | null; size?: number }
 const tabs: Tab[] = [];
 let active: Tab | null = null;
 let nextId = 1;
@@ -60,7 +62,7 @@ customZoomOption.dataset.custom = '';
 const zoomPresets = new Set(Array.from(zoom.options, option => option.value));
 
 function update(state: ReaderState): void {
-  const available = !!active && state.pages > 0 && !busy;
+  const available = !!active?.document && state.pages > 0 && !busy;
   if (!previousControls || previousControls.available !== available ||
       previousControls.page !== state.page || previousControls.pages !== state.pages ||
       previousControls.layout !== state.layout) {
@@ -82,6 +84,7 @@ function update(state: ReaderState): void {
 
 function updateReaderControls(state: ReaderState, available: boolean): void {
   findBar?.setAvailable(available);
+  element<HTMLButtonElement>('pdf-info').disabled = !available;
   vertical.disabled = horizontal.disabled = rotate.disabled = !available;
   textTool.disabled = saveButton.disabled = highlightTool.disabled = printButton.disabled = !available;
   vertical.setAttribute('aria-pressed', String(state.layout === 'vertical'));
@@ -164,9 +167,9 @@ function render(): void {
   filename.textContent = filename.title = active?.name || 'FolioPDF';
   filename.classList.toggle('sr-only', !!active);
   document.title = active ? `${active.name} — FolioPDF` : 'FolioPDF';
-  container.hidden = !active;
-  empty.hidden = !!active;
-  if (!active) status.textContent = 'Ready';
+  container.hidden = !active?.document;
+  empty.hidden = !!active?.document;
+  if (!active?.document) status.textContent = 'Ready';
   update(reader.state);
   renderTabs();
 }
@@ -212,8 +215,12 @@ async function openDocument(getFile: () => ReturnType<typeof pickPdf>): Promise<
     pending = await reader.load(file.data);
     findBar?.reset();
     await reader.show(pending);
-    active = { id: nextId++, name: file.name, document: pending };
-    tabs.push(active);
+    const home = active && !active.document ? active : null;
+    active = { id: home?.id ?? nextId++, name: file.name, document: pending, size: file.data.byteLength };
+    if (home) tabs[tabs.indexOf(home)] = active;
+    else tabs.push(active);
+    if (file.path) void rememberPdf(file.path);
+
     pending = null;
   } catch (error) {
     if (pending) {
@@ -257,7 +264,7 @@ async function closeTab(tab: Tab): Promise<void> {
       active = neighbor;
     }
     tabs.splice(index, 1);
-    await reader.close(tab.document);
+    if (tab.document) await reader.close(tab.document);
   } catch (error) {
     report(error);
   } finally {
@@ -283,7 +290,12 @@ tabList.addEventListener('keydown', event => {
 });
 
 openButton.addEventListener('click', open);
-newTab.addEventListener('click', open);
+newTab.addEventListener('click', () => {
+  if (busy) return;
+  const tab: Tab = { id: nextId++, name: 'Home', document: null };
+  tabs.push(tab);
+  void activate(tab);
+});
 emptyButton.addEventListener('click', open);
 previous.addEventListener('click', () => reader.goTo(reader.state.page - 1));
 next.addEventListener('click', () => reader.goTo(reader.state.page + 1));
@@ -338,7 +350,7 @@ function queueGestureZoom(factor: number, x: number, y: number): void {
 }
 
 container.addEventListener('wheel', event => {
-  if (!active || busy || !event.ctrlKey) return;
+  if (!active?.document || busy || !event.ctrlKey) return;
   event.preventDefault();
   const enabled = heldControlKeys.size ? wheelToggle.checked : pinchToggle.checked;
   if (!enabled || !event.deltaY) return;
@@ -356,7 +368,7 @@ container.addEventListener('touchstart', event => {
   if (event.touches.length === 2) pinchDistance = Math.hypot(event.touches[0].clientX - event.touches[1].clientX, event.touches[0].clientY - event.touches[1].clientY);
 }, { passive: true });
 container.addEventListener('touchmove', event => {
-  if (!active || busy || !pinchToggle.checked || event.touches.length !== 2 || !pinchDistance) return;
+  if (!active?.document || busy || !pinchToggle.checked || event.touches.length !== 2 || !pinchDistance) return;
   const first = event.touches[0];
   const second = event.touches[1];
   const distance = Math.hypot(first.clientX - second.clientX, first.clientY - second.clientY);
@@ -374,7 +386,7 @@ document.addEventListener('keydown', event => {
   const target = event.target as HTMLElement | null;
   const editing = !!target?.closest('input, select, textarea, [contenteditable]:not([contenteditable="false"])');
   const command = event.ctrlKey || event.metaKey;
-  if (active && !busy && !editing) {
+  if (active?.document && !busy && !editing) {
     if (!command && event.key.toLowerCase() === 'r') { event.preventDefault(); reader.rotate(event.shiftKey ? -1 : 1); return; }
     if (command && !event.shiftKey && (event.key === 'Home' || event.key === 'End')) {
       event.preventDefault(); reader.goTo(event.key === 'Home' ? 1 : reader.state.pages); return;
@@ -388,16 +400,17 @@ document.addEventListener('keydown', event => {
     event.preventDefault();
     void activate(tabs[(tabs.indexOf(active) + (event.shiftKey ? -1 : 1) + tabs.length) % tabs.length]);
   }
+  if (!active.document) return;
   if (event.key === '+' || event.key === '=' || event.key === 'Add') { event.preventDefault(); reader.stepZoom(1); }
   if (event.key === '-' || event.key === 'Subtract') { event.preventDefault(); reader.stepZoom(-1); }
   if (event.key === '0') { event.preventDefault(); reader.zoom('1'); }
 });
 
 if (isTauri()) {
-  void invoke<string | null>('startup_pdf_name').then(name => {
-    if (!name) return;
+  void invoke<{ name: string; path: string } | null>('startup_pdf_info').then(file => {
+    if (!file) return;
     return openDocument(async () => ({
-      name,
+      ...file,
       data: new Uint8Array(await invoke<ArrayBuffer>('read_startup_pdf')),
     }));
   }).catch(report);
@@ -411,4 +424,38 @@ element('settings-help').addEventListener('click', () => {
     if (!response.ok) throw new Error('Could not load the bundled guide.');
     return { name: 'FolioPDF user guide.pdf', data: new Uint8Array(await response.arrayBuffer()) };
   });
+});
+
+initHistory(entry => openDocument(async () => ({
+  name: entry.name,
+  path: entry.path,
+  data: new Uint8Array(await invoke<ArrayBuffer>('read_recent_pdf', { path: entry.path })),
+})));
+
+element('pdf-info').addEventListener('click', async () => {
+  const tab = active;
+  const document = tab?.document;
+  if (!document) return;
+  const dialog = element<HTMLDialogElement>('pdf-info-dialog');
+  const properties = element('pdf-properties');
+  properties.textContent = 'Reading document details…';
+  dialog.showModal();
+  const fields: [string, unknown][] = [['File name', tab.name], ['Size', tab.size?.toLocaleString() + ' bytes'], ['Pages', document.pdf.numPages]];
+  try {
+    const { info, metadata } = await document.pdf.getMetadata();
+    for (const [key, value] of Object.entries(info)) fields.push([key.replace(/([a-z])([A-Z])/g, '$1 $2'), value]);
+    for (const [key, value] of (metadata ?? [])) fields.push([key, value]);
+    const page = await document.pdf.getPage(reader.state.page);
+    const { width, height } = page.getViewport({ scale: 1 });
+    fields.push(['Current page size', `${width.toFixed(1)} × ${height.toFixed(1)} pt`]);
+  } catch { /* Keep the basic file details available. */ }
+  const rows = fields.flatMap(([label, value]) => {
+    if (value === null || value === undefined || value === '') return [];
+    const key = window.document.createElement('dt');
+    const detail = window.document.createElement('dd');
+    key.textContent = label;
+    detail.textContent = typeof value === 'object' ? JSON.stringify(value) : String(value);
+    return [key, detail];
+  });
+  properties.replaceChildren(...rows);
 });

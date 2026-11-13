@@ -2,6 +2,7 @@ import { isTauri } from '@tauri-apps/api/core';
 
 export interface OpenedFile {
   name: string;
+  path?: string;
   data: Uint8Array;
 }
 
@@ -18,7 +19,7 @@ export async function pickPdf(input: HTMLInputElement): Promise<OpenedFile | nul
       filters: [{ name: 'PDF documents', extensions: ['pdf'] }],
     });
     if (!path) return null;
-    return { name: path.split(/[\\/]/).pop() || 'Document.pdf', data: await readFile(path) };
+    return { path, name: path.split(/[\\/]/).pop() || 'Document.pdf', data: await readFile(path) };
   }
 
   // The browser adapter keeps development and reader tests independent of Tauri.

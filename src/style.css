@@ -205,3 +205,19 @@ dialog[open] { animation: dialog-enter 140ms ease-out; }
     transition: background-color 180ms ease, color 180ms ease, border-color 180ms ease;
   }
 }
+
+.toolbar-label { display: none; }
+[data-toolbar-labels] .toolbar-label { display: inline; }
+[data-toolbar-labels] .toolbar { gap: 8px; }
+[data-toolbar-labels] .toolbar > div { flex-wrap: wrap; }
+.empty-state:has(#recent-panel:not([hidden])) { display: grid; grid-template-columns: 1fr minmax(180px, 300px); gap: 20px; padding: 24px; overflow: auto; }
+#recent-panel { align-self: center; max-height: 100%; overflow: auto; padding: 16px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); }
+#recent-panel h2 { font-size: 15px; margin: 0 0 12px; }
+#recent-list { margin: 0; padding: 0; list-style: none; }
+#recent-list button { display: block; width: 100%; text-align: left; height: auto; overflow-wrap: anywhere; }
+#pdf-info-dialog { max-height: 80dvh; overflow: auto; }
+#pdf-properties { display: grid; grid-template-columns: minmax(85px, 1fr) 2fr; gap: 8px; overflow-wrap: anywhere; }
+#pdf-properties dd { margin: 0; color: var(--muted); }
+@media (max-width: 640px) {
+  .empty-state:has(#recent-panel:not([hidden])) { grid-template-columns: 1fr; }
+}

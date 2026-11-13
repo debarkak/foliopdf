@@ -11,7 +11,7 @@
       <div id="tabs-bar" class="tabs-bar" hidden>
         <span class="window-brand" data-tauri-drag-region>FolioPDF</span>
         <div id="document-tabs" class="document-tabs" role="tablist" aria-label="Open documents"></div>
-        <button id="new-tab" aria-label="Open PDF in a new tab" title="Open PDF in a new tab (Ctrl+O)"><i data-lucide="plus" aria-hidden="true"></i></button>
+        <button id="new-tab" aria-label="New tab" title="New tab"><i data-lucide="plus" aria-hidden="true"></i></button>
         <div class="window-drag" data-tauri-drag-region></div>
         <div class="window-controls" hidden>
           <button id="window-minimize" aria-label="Minimize window">−</button>
@@ -25,6 +25,7 @@
             <i data-lucide="folder-open" aria-hidden="true"></i><span>Open</span>
           </button>
           <span id="filename" class="filename">FolioPDF</span>
+          <button id="pdf-info" title="Document information" aria-label="Document information" disabled><i data-lucide="info" aria-hidden="true"></i></button>
           <button id="settings-open" aria-label="Settings" title="Settings"><i data-lucide="settings-2" aria-hidden="true"></i></button>
           <button id="rotate" aria-label="Rotate pages clockwise" title="Rotate pages clockwise (R)" disabled><i data-lucide="rotate-cw" aria-hidden="true"></i></button>
           <button id="text-tool" aria-label="Add text" title="Add text" aria-pressed="false" disabled><i data-lucide="type" aria-hidden="true"></i></button>
@@ -79,15 +80,18 @@
             <button id="open-empty" class="primary-button"><i data-lucide="folder-open" aria-hidden="true"></i>Open PDF</button>
             <span class="shortcut">Ctrl+O</span>
           </div>
+          <aside id="recent-panel" hidden><h2>Recent PDFs</h2><p id="recent-empty">No recent PDFs.</p><ul id="recent-list"></ul></aside>
         </section>
         <div id="loading" class="loading" role="status" hidden>Opening PDF…</div>
       </main>
       <footer class="statusbar"><span id="status" role="status" aria-live="polite">Ready</span></footer>
+      <dialog id="pdf-info-dialog" aria-labelledby="pdf-info-title"><h2 id="pdf-info-title">Document information</h2><dl id="pdf-properties"></dl><form method="dialog"><button class="primary-button">Close</button></form></dialog>
       <dialog id="updates-dialog" aria-labelledby="settings-title">
         <div class="settings-heading"><div><span class="eyebrow">FOLIOPDF / PREFERENCES</span><h2 id="settings-title">Settings</h2></div><button id="update-close" aria-label="Close settings" title="Close settings"><i data-lucide="x" aria-hidden="true"></i></button></div>
         <div id="settings-home" class="settings-menu">
           <button id="settings-appearance" class="settings-item"><span><strong>Appearance</strong><small>Theme and color</small></span><i data-lucide="chevron-right" aria-hidden="true"></i></button>
           <button id="settings-gestures" class="settings-item"><span><strong>Reading &amp; gestures</strong><small>Zoom shortcuts and trackpad gestures</small></span><i data-lucide="chevron-right" aria-hidden="true"></i></button>
+          <button id="settings-history" class="settings-item"><span><strong>History</strong><small>Recent PDFs and retention</small></span><i data-lucide="chevron-right" aria-hidden="true"></i></button>
           <button id="settings-help" class="settings-item"><span><strong>Help</strong><small>Open the user guide</small></span><i data-lucide="chevron-right" aria-hidden="true"></i></button>
           <button id="settings-about" class="settings-item"><span><strong>About &amp; updates</strong><small>Version and updates</small></span><i data-lucide="chevron-right" aria-hidden="true"></i></button>
         </div>
@@ -105,6 +109,7 @@
             <label title="Slate"><input type="radio" name="palette" value="slate" aria-label="Slate" /><span class="swatch slate" aria-hidden="true"></span></label>
             <label title="Teal"><input type="radio" name="palette" value="teal" aria-label="Teal" /><span class="swatch teal" aria-hidden="true"></span></label>
           </fieldset>
+          <label class="setting-toggle"><span><strong>Toolbar labels</strong><small>Show text beside toolbar icons.</small></span><input id="toolbar-labels" type="checkbox" /></label>
           <div class="custom-accent">
             <label for="accent-picker">Custom accent</label>
             <input id="accent-picker" type="color" value="#719b77" aria-label="Custom accent color" />
@@ -117,6 +122,7 @@
           <label class="setting-toggle"><span><strong>Pinch to zoom</strong><small>Use a touchpad pinch gesture to zoom the document.</small></span><input id="gesture-pinch" type="checkbox" checked /></label>
           <label class="setting-toggle"><span><strong>Ctrl + mouse wheel</strong><small>Zoom while holding Ctrl and scrolling.</small></span><input id="gesture-wheel" type="checkbox" checked /></label>
         </section>
+        <section id="settings-history-page" class="settings-section" hidden><h3>History</h3><label class="setting-toggle"><span><strong>Keep recent PDFs</strong><small>Show recently opened local files on Home.</small></span><input id="history-enabled" type="checkbox" checked /></label><label for="history-days">Keep history for</label> <select id="history-days"><option value="7">7 days</option><option value="30" selected>30 days</option><option value="90">90 days</option><option value="365">365 days</option></select></section>
         <section id="settings-about-page" class="settings-section" aria-labelledby="updates-title" hidden>
           <div class="section-heading"><span class="section-number">04</span><h3 id="updates-title">About &amp; updates</h3></div>
           <p id="app-version"></p>

@@ -16,6 +16,7 @@ const close = document.querySelector<HTMLButtonElement>('#update-close')!;
 const back = document.querySelector<HTMLButtonElement>('#settings-back')!;
 const home = document.querySelector<HTMLElement>('#settings-home')!;
 const appearancePage = document.querySelector<HTMLElement>('#settings-appearance-page')!;
+const historyPage = document.querySelector<HTMLElement>('#settings-history-page')!;
 const gesturePage = document.querySelector<HTMLElement>('#settings-gestures-page')!;
 const aboutPage = document.querySelector<HTMLElement>('#settings-about-page')!;
 let update: Update | null = null;
@@ -35,9 +36,10 @@ async function release(): Promise<void> {
   await old?.close();
 }
 
-function showPage(page: 'home' | 'appearance' | 'gestures' | 'about'): void {
+function showPage(page: 'home' | 'appearance' | 'gestures' | 'history' | 'about'): void {
   home.hidden = page !== 'home';
   appearancePage.hidden = page !== 'appearance';
+  historyPage.hidden = page !== 'history';
   gesturePage.hidden = page !== 'gestures';
   aboutPage.hidden = page !== 'about';
   back.hidden = page === 'home';
@@ -45,8 +47,9 @@ function showPage(page: 'home' | 'appearance' | 'gestures' | 'about'): void {
 document.querySelector<HTMLButtonElement>('#settings-appearance')!.addEventListener('click', () => { showPage('appearance'); back.focus(); });
 document.querySelector<HTMLButtonElement>('#settings-about')!.addEventListener('click', () => { showPage('about'); back.focus(); });
 document.querySelector<HTMLButtonElement>('#settings-gestures')!.addEventListener('click', () => { showPage('gestures'); back.focus(); });
+document.querySelector<HTMLButtonElement>('#settings-history')!.addEventListener('click', () => { showPage('history'); back.focus(); });
 function returnToSettings(): void {
-  const previous = !appearancePage.hidden ? '#settings-appearance' : !gesturePage.hidden ? '#settings-gestures' : '#settings-about';
+  const previous = !appearancePage.hidden ? '#settings-appearance' : !gesturePage.hidden ? '#settings-gestures' : !historyPage.hidden ? '#settings-history' : '#settings-about';
   showPage('home');
   document.querySelector<HTMLButtonElement>(previous)!.focus();
 }
