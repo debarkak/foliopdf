@@ -272,7 +272,7 @@ zoom.addEventListener('change', () => reader.zoom(zoom.value));
 zoomIn.addEventListener('click', () => reader.stepZoom(1));
 zoomOut.addEventListener('click', () => reader.stepZoom(-1));
 const gesturePrefs = (() => {
-  try { return JSON.parse(localStorage.getItem('foliopdf.gestures') || '{"pinch":true,"wheel":true}'); }
+  try { return JSON.parse(localStorage.getItem('foliopdf.gestures') || '{}') ?? {}; }
   catch { return { pinch: true, wheel: true }; }
 })();
 const pinchToggle = element<HTMLInputElement>('gesture-pinch');
@@ -284,10 +284,23 @@ function saveGestures(): void {
 }
 pinchToggle.addEventListener('change', saveGestures);
 wheelToggle.addEventListener('change', saveGestures);
+const heldControlKeys = new Set<string>();
+window.addEventListener('keydown', event => {
+  if (event.key === 'Control') heldControlKeys.add(event.code);
+});
+window.addEventListener('keyup', event => {
+  if (event.key === 'Control') heldControlKeys.delete(event.code);
+});
+window.addEventListener('blur', () => heldControlKeys.clear());
 container.addEventListener('wheel', event => {
-  if (!active || busy || !wheelToggle.checked || !event.ctrlKey) return;
+  if (!active || busy || !event.ctrlKey) return;
   event.preventDefault();
-  reader.stepZoom(event.deltaY < 0 ? 1 : -1);
+  const enabled = heldControlKeys.size ? wheelToggle.checked : pinchToggle.checked;
+  if (!enabled || !event.deltaY) return;
+  const unit = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? container.clientHeight : 1;
+  const delta = Math.max(-120, Math.min(120, event.deltaY * unit));
+  const scale = Math.max(0.25, Math.min(4, reader.state.scale * Math.exp(-delta / 300)));
+  reader.zoom(String(scale));
 }, { passive: false });
 let pinchDistance = 0;
 container.addEventListener('touchstart', event => {
@@ -299,7 +312,9 @@ container.addEventListener('touchmove', event => {
   if (Math.abs(distance - pinchDistance) > 12) { reader.stepZoom(distance > pinchDistance ? 1 : -1); pinchDistance = distance; }
   event.preventDefault();
 }, { passive: false });
-container.addEventListener('touchend', () => { pinchDistance = 0; }, { passive: true });
+for (const event of ['touchend', 'touchcancel']) {
+  container.addEventListener(event, () => { pinchDistance = 0; }, { passive: true });
+}
 document.addEventListener('keydown', event => {
   if (document.querySelector('dialog[open]') || event.altKey) return;
   const target = event.target as HTMLElement | null;
@@ -319,7 +334,7 @@ document.addEventListener('keydown', event => {
     event.preventDefault();
     void activate(tabs[(tabs.indexOf(active) + (event.shiftKey ? -1 : 1) + tabs.length) % tabs.length]);
   }
-  if ((event.key === '+' || event.key === '=' || event.key === 'Add') && !event.shiftKey) { event.preventDefault(); reader.stepZoom(1); }
+  if (event.key === '+' || event.key === '=' || event.key === 'Add') { event.preventDefault(); reader.stepZoom(1); }
   if (event.key === '-' || event.key === 'Subtract') { event.preventDefault(); reader.stepZoom(-1); }
   if (event.key === '0') { event.preventDefault(); reader.zoom('1'); }
 });
