@@ -4,6 +4,7 @@ import '@fontsource-variable/open-sans';
 import './style.css';
 import './updates';
 import './appearance';
+import './titlebar';
 import { isTauri, invoke } from '@tauri-apps/api/core';
 
 if (isTauri()) {
@@ -129,7 +130,7 @@ saveButton.addEventListener('click', async () => {
 });
 
 function renderTabs(): void {
-  element('tabs-bar').hidden = tabs.length === 0;
+  element('tabs-bar').hidden = tabs.length === 0 && !document.documentElement.hasAttribute('data-custom-titlebar');
   tabList.replaceChildren();
   for (const tab of tabs) {
     const group = document.createElement('div');
@@ -401,3 +402,13 @@ if (isTauri()) {
     }));
   }).catch(report);
 }
+
+const settings = element<HTMLDialogElement>('updates-dialog');
+element('settings-help').addEventListener('click', () => {
+  settings.close();
+  void openDocument(async () => {
+    const response = await fetch(new URL('foliopdf-user-guide.pdf', document.baseURI));
+    if (!response.ok) throw new Error('Could not load the bundled guide.');
+    return { name: 'FolioPDF user guide.pdf', data: new Uint8Array(await response.arrayBuffer()) };
+  });
+});

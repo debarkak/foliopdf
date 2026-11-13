@@ -9,8 +9,15 @@
   <body>
     <div id="app">
       <div id="tabs-bar" class="tabs-bar" hidden>
+        <span class="window-brand" data-tauri-drag-region>FolioPDF</span>
         <div id="document-tabs" class="document-tabs" role="tablist" aria-label="Open documents"></div>
         <button id="new-tab" aria-label="Open PDF in a new tab" title="Open PDF in a new tab (Ctrl+O)"><i data-lucide="plus" aria-hidden="true"></i></button>
+        <div class="window-drag" data-tauri-drag-region></div>
+        <div class="window-controls" hidden>
+          <button id="window-minimize" aria-label="Minimize window">−</button>
+          <button id="window-maximize" aria-label="Maximize or restore window">□</button>
+          <button id="window-close" aria-label="Close window">×</button>
+        </div>
       </div>
       <header class="toolbar" aria-label="Reader toolbar">
         <div class="file-tools">
@@ -84,12 +91,11 @@
           <button id="settings-help" class="settings-item"><span><strong>Help</strong><small>Open the user guide</small></span><i data-lucide="chevron-right" aria-hidden="true"></i></button>
           <button id="settings-about" class="settings-item"><span><strong>About &amp; updates</strong><small>Version and updates</small></span><i data-lucide="chevron-right" aria-hidden="true"></i></button>
         </div>
-        <p id="help-error" role="status" hidden>Could not open the user guide.</p>
         <button id="settings-back" class="settings-back" hidden><i data-lucide="chevron-left" aria-hidden="true"></i>Settings</button>
         <section id="settings-appearance-page" class="settings-section" aria-labelledby="appearance-title" hidden>
           <div class="section-heading"><span class="section-number">01</span><h3 id="appearance-title">Appearance</h3></div>
           <label class="appearance-label" for="appearance-theme">Theme</label>
-          <select id="appearance-theme"><option value="system">System</option><option value="light">Light</option><option value="dark">Dark</option></select>
+          <select id="appearance-theme"><option value="system">System</option><option value="light">Light</option><option value="dark">Dark</option><option value="deep-dark">Deep Dark</option></select>
           <fieldset class="palette-options"><legend>Color</legend>
             <label title="Sage"><input type="radio" name="palette" value="sage" aria-label="Sage" /><span class="swatch sage" aria-hidden="true"></span></label>
             <label title="Ocean"><input type="radio" name="palette" value="ocean" aria-label="Ocean" /><span class="swatch ocean" aria-hidden="true"></span></label>
@@ -99,6 +105,12 @@
             <label title="Slate"><input type="radio" name="palette" value="slate" aria-label="Slate" /><span class="swatch slate" aria-hidden="true"></span></label>
             <label title="Teal"><input type="radio" name="palette" value="teal" aria-label="Teal" /><span class="swatch teal" aria-hidden="true"></span></label>
           </fieldset>
+          <div class="custom-accent">
+            <label for="accent-picker">Custom accent</label>
+            <input id="accent-picker" type="color" value="#719b77" aria-label="Custom accent color" />
+            <input id="accent-hex" type="text" maxlength="7" pattern="#?[0-9a-fA-F]{6}" aria-label="Accent hex color" placeholder="#719b77" />
+          </div>
+          <label class="setting-toggle"><span><strong>Dark PDF pages</strong><small>Invert page colors while reading.</small></span><input id="dark-pdf" type="checkbox" /></label>
         </section>
         <section id="settings-gestures-page" class="settings-section" aria-labelledby="gestures-title" hidden>
           <div class="section-heading"><span class="section-number">02</span><h3 id="gestures-title">Reading &amp; gestures</h3></div>

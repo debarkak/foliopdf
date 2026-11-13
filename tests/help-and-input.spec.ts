@@ -2,17 +2,12 @@ import { expect, test } from '@playwright/test';
 import { makePdf } from './pdf-fixture.mjs';
 
 test('Help opens the user guide and plus opens another PDF tab', async ({ page }) => {
-  await page.addInitScript(() => {
-    window.open = url => {
-      document.body.dataset.openedUrl = String(url);
-      return null;
-    };
-  });
+  await page.route('https://github.com/**', route => route.abort());
   await page.goto('/');
   await page.getByRole('button', { name: 'Settings', exact: true }).click();
   await page.getByRole('button', { name: 'Help Open the user guide' }).click();
-  await expect(page.locator('body')).toHaveAttribute('data-opened-url', /\/docs\/user-guide\.md$/);
-  await page.getByRole('button', { name: 'Close settings' }).click();
+  await expect(page.getByRole('tab', { name: 'FolioPDF user guide.pdf', exact: true })).toHaveAttribute('aria-selected', 'true');
+  await expect(page.locator('.textLayer')).toContainText('FolioPDF user guide');
 
   for (const [name, button] of [
     ['first.pdf', page.getByRole('button', { name: 'Open', exact: true })],
@@ -23,7 +18,7 @@ test('Help opens the user guide and plus opens another PDF tab', async ({ page }
     await (await chooser).setFiles({ name, mimeType: 'application/pdf', buffer: makePdf(name) });
     await expect(page.getByRole('tab', { name, exact: true })).toHaveAttribute('aria-selected', 'true');
   }
-  await expect(page.getByRole('tab')).toHaveCount(2);
+  await expect(page.getByRole('tab')).toHaveCount(3);
 });
 
 test('pinch and Ctrl-wheel respect separate settings', async ({ page }) => {
