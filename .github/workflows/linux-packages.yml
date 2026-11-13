@@ -19,8 +19,8 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p /tmp/artifacts/linux /tmp/artifacts/windows /tmp/release
-          gh run download 43396136366 --repo "$GITHUB_REPOSITORY" --name linux-packages --dir /tmp/artifacts/linux
-          gh run download 43396113450 --repo "$GITHUB_REPOSITORY" --name windows-packages --dir /tmp/artifacts/windows
+          gh run download 43396891503 --repo "$GITHUB_REPOSITORY" --name linux-packages --dir /tmp/artifacts/linux
+          gh run download 43396862779 --repo "$GITHUB_REPOSITORY" --name windows-packages --dir /tmp/artifacts/windows
           names=(FolioPDF_1.0.18_x64-setup.exe FolioPDF-1.0.18-windows-x64.zip FolioPDF_1.0.18_amd64.deb FolioPDF_1.0.18_amd64.AppImage FolioPDF-1.0.18-linux-x86_64.tar.gz FolioPDF_1.0.18_x64-setup.exe.sig FolioPDF_1.0.18_amd64.AppImage.sig)
           for name in "${names[@]}"; do
             mapfile -t found < <(find /tmp/artifacts -type f -name "$name")
