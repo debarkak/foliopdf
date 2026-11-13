@@ -33,10 +33,10 @@ fn enable_backdrop(window: tauri::WebviewWindow) -> bool {
 }
 
 fn startup_pdf_path() -> Option<std::path::PathBuf> {
-    let path = std::path::PathBuf::from(std::env::args_os().nth(1)?);
-    path.extension()
-        .is_some_and(|extension| extension.eq_ignore_ascii_case("pdf"))
-        .then_some(path)
+    std::env::args_os().skip(1).map(std::path::PathBuf::from).find(|path| {
+        path.extension().is_some_and(|extension| extension.eq_ignore_ascii_case("pdf"))
+            && path.is_file()
+    })
 }
 
 #[tauri::command]
