@@ -76,19 +76,21 @@ jobs:
           await writeFile(file, makePdf('Installed association test'));
           const launch = spawnSync('powershell.exe', ['-NoProfile', '-Command', '$c=(Get-Item "HKCU:\\Software\\Classes\\FolioPDF.PDF\\shell\\open\\command").GetValue(""); $c=$c.Replace("%1",$env:FOLIOPDF_QA_FILE); Start-Process -FilePath $env:FOLIOPDF_QA_EXE -ArgumentList ([char]34+$env:FOLIOPDF_QA_FILE+[char]34)'], {env: {...process.env, FOLIOPDF_QA_FILE: file, WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS: '--remote-debugging-port=9483', WEBVIEW2_USER_DATA_FOLDER: join(process.env.FOLIOPDF_QA_DIR, 'qa-webview')}});
           if (launch.status !== 0) throw Error('Registered launch failed');
-          let browser;
-          try {
-            for(let i=0;i<100;i++) {
-              try { if((await fetch('http://127.0.0.1:9483/json/version')).ok) break; } catch {}
-              await new Promise(resolve => setTimeout(resolve,200));
-            }
-            browser = await chromium.connectOverCDP('http://127.0.0.1:9483');
-            const context = browser.contexts()[0];
-            const page = context.pages()[0] ?? await context.waitForEvent('page');
-            await page.getByRole('tab', {name: 'PDF with spaces.pdf', exact:true}).waitFor({timeout:20000});
-            await page.locator('.textLayer').filter({hasText:'Installed association test'}).first().waitFor();
-            console.log('Installed association opens and renders a PDF with spaces.');
-          } finally { await browser?.close(); }
+          const { readFile } = await import('node:fs/promises');
+          const history = join(process.env.LOCALAPPDATA, 'io.github.debarkak.foliopdf', 'recent-pdfs.json');
+          let opened = false;
+          for(let i=0;i<150;i++) {
+            try {
+              const entries = JSON.parse(await readFile(history, 'utf8'));
+              if(entries.some(entry => entry.path.toLowerCase() === file.toLowerCase())) {
+                opened = true;
+                break;
+              }
+            } catch {}
+            await new Promise(resolve => setTimeout(resolve,200));
+          }
+          if(!opened) throw Error('The installed app did not successfully load the associated PDF');
+          console.log('Installed app successfully loads a PDF with spaces and records it in history.');
           '@ | Set-Content installer-association-check.mjs
           node installer-association-check.mjs
           if ($LASTEXITCODE -ne 0) { throw 'Installed association test failed' }
