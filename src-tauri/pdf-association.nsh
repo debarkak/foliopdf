@@ -1,7 +1,9 @@
 !macro NSIS_HOOK_POSTINSTALL
   WriteRegStr HKCU "Software\Classes\FolioPDF.PDF" "" "PDF document"
-  WriteRegStr HKCU "Software\Classes\FolioPDF.PDF\DefaultIcon" "" '$INSTDIR\foliopdf.exe,0'
-  WriteRegStr HKCU "Software\Classes\FolioPDF.PDF\shell\open\command" "" '$"$INSTDIR\foliopdf.exe$" $"%1$"'
+  WriteRegStr HKCU "Software\Classes\FolioPDF.PDF" "FriendlyTypeName" "FolioPDF PDF document"
+  WriteRegStr HKCU "Software\Classes\FolioPDF.PDF\Application" "ApplicationName" "FolioPDF"
+  WriteRegStr HKCU "Software\Classes\FolioPDF.PDF\DefaultIcon" "" '$\"$INSTDIR\foliopdf.exe$\",0'
+  WriteRegStr HKCU "Software\Classes\FolioPDF.PDF\shell\open\command" "" '$\"$INSTDIR\foliopdf.exe$\" $\"%1$\"'
   WriteRegStr HKCU "Software\Classes\.pdf\OpenWithProgids" "FolioPDF.PDF" ""
   WriteRegStr HKCU "Software\FolioPDF\Capabilities" "ApplicationName" "FolioPDF"
   WriteRegStr HKCU "Software\FolioPDF\Capabilities" "ApplicationDescription" "A lightweight PDF reader"
