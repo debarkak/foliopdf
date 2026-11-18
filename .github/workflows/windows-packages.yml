@@ -74,7 +74,7 @@ jobs:
           import { makePdf } from './tests/pdf-fixture.mjs';
           const file = join(process.env.FOLIOPDF_QA_DIR, 'PDF with spaces.pdf');
           await writeFile(file, makePdf('Installed association test'));
-          const launch = spawnSync('powershell.exe', ['-NoProfile', '-Command', '$c=(Get-Item "HKCU:\\Software\\Classes\\FolioPDF.PDF\\shell\\open\\command").GetValue(""); $c=$c.Replace("%1",$env:FOLIOPDF_QA_FILE); $r=Invoke-CimMethod -ClassName Win32_Process -MethodName Create -Arguments @{CommandLine=$c}; if($r.ReturnValue){exit 1}'], {env: {...process.env, FOLIOPDF_QA_FILE: file, WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS: '--remote-debugging-port=9483', WEBVIEW2_USER_DATA_FOLDER: join(process.env.FOLIOPDF_QA_DIR, 'qa-webview')}});
+          const launch = spawnSync('powershell.exe', ['-NoProfile', '-Command', '$c=(Get-Item "HKCU:\\Software\\Classes\\FolioPDF.PDF\\shell\\open\\command").GetValue(""); $c=$c.Replace("%1",$env:FOLIOPDF_QA_FILE); Start-Process -FilePath $env:FOLIOPDF_QA_EXE -ArgumentList ([char]34+$env:FOLIOPDF_QA_FILE+[char]34)'], {env: {...process.env, FOLIOPDF_QA_FILE: file, WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS: '--remote-debugging-port=9483', WEBVIEW2_USER_DATA_FOLDER: join(process.env.FOLIOPDF_QA_DIR, 'qa-webview')}});
           if (launch.status !== 0) throw Error('Registered launch failed');
           let browser;
           try {
