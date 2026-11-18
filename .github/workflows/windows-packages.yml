@@ -13,7 +13,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: 4c529ff590135cd5a780f32051bd95bdc06014b0
+          ref: c113756f6be761300605cc3107966ab14b00f3e8
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 22
@@ -50,6 +50,53 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         run: npm run tauri build -- --bundles nsis
+      - name: Test the installed PDF association
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $installer = Get-ChildItem src-tauri/target/release/bundle/nsis/*.exe | Select-Object -First 1
+          $directory = Join-Path $env:RUNNER_TEMP 'FolioPDF association test'
+          $setup = Start-Process $installer.FullName -ArgumentList @('/S', "/D=$directory") -WindowStyle Hidden -PassThru -Wait
+          if ($setup.ExitCode -ne 0) { throw 'Installer failed' }
+          $exe = Join-Path $directory 'foliopdf.exe'
+          $command = (Get-Item 'HKCU:\Software\Classes\FolioPDF.PDF\shell\open\command').GetValue('')
+          if ($command -cne ('"' + $exe + '" "%1"')) { throw "Bad command: $command" }
+          $icon = (Get-Item 'HKCU:\Software\Classes\FolioPDF.PDF\DefaultIcon').GetValue('')
+          if ($icon -cne ('"' + $exe + '",0')) { throw "Bad icon: $icon" }
+          if ((Get-ItemPropertyValue 'HKCU:\Software\Classes\FolioPDF.PDF\Application' 'ApplicationName') -ne 'FolioPDF') { throw 'Friendly name missing' }
+          $env:FOLIOPDF_QA_EXE = $exe
+          $env:FOLIOPDF_QA_DIR = $directory
+          @'
+          import { spawnSync } from 'node:child_process';
+          import { writeFile } from 'node:fs/promises';
+          import { join } from 'node:path';
+          import { chromium } from 'playwright';
+          import { makePdf } from './tests/pdf-fixture.mjs';
+          const file = join(process.env.FOLIOPDF_QA_DIR, 'PDF with spaces.pdf');
+          await writeFile(file, makePdf('Installed association test'));
+          const launch = spawnSync('powershell.exe', ['-NoProfile', '-Command', '$c=(Get-Item "HKCU:\\Software\\Classes\\FolioPDF.PDF\\shell\\open\\command").GetValue(""); $c=$c.Replace("%1",$env:FOLIOPDF_QA_FILE); $r=Invoke-CimMethod -ClassName Win32_Process -MethodName Create -Arguments @{CommandLine=$c}; if($r.ReturnValue){exit 1}'], {env: {...process.env, FOLIOPDF_QA_FILE: file, WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS: '--remote-debugging-port=9483', WEBVIEW2_USER_DATA_FOLDER: join(process.env.FOLIOPDF_QA_DIR, 'qa-webview')}});
+          if (launch.status !== 0) throw Error('Registered launch failed');
+          let browser;
+          try {
+            for(let i=0;i<100;i++) {
+              try { if((await fetch('http://127.0.0.1:9483/json/version')).ok) break; } catch {}
+              await new Promise(resolve => setTimeout(resolve,200));
+            }
+            browser = await chromium.connectOverCDP('http://127.0.0.1:9483');
+            const context = browser.contexts()[0];
+            const page = context.pages()[0] ?? await context.waitForEvent('page');
+            await page.getByRole('tab', {name: 'PDF with spaces.pdf', exact:true}).waitFor({timeout:20000});
+            await page.locator('.textLayer').filter({hasText:'Installed association test'}).first().waitFor();
+            console.log('Installed association opens and renders a PDF with spaces.');
+          } finally { await browser?.close(); }
+          '@ | Set-Content installer-association-check.mjs
+          node installer-association-check.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'Installed association test failed' }
+          Get-Process foliopdf -ErrorAction SilentlyContinue | Where-Object Path -eq $exe | Stop-Process -Force
+          Start-Sleep -Seconds 1
+          $uninstall = Start-Process "$directory/uninstall.exe" -ArgumentList '/S' -WindowStyle Hidden -PassThru -Wait
+          if ($uninstall.ExitCode -ne 0) { throw 'Uninstall failed' }
+          if (Test-Path 'HKCU:\Software\Classes\FolioPDF.PDF') { throw 'Association remains after uninstall' }
       - name: Prepare portable archive
         shell: pwsh
         run: |
