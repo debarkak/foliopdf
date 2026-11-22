@@ -20,6 +20,7 @@ edited copy so the original PDF stays as it is.
 
 - [user guide](docs/user-guide.md)
 - [developer guide](docs/developer-guide.md)
+- [Debian and Ubuntu APT setup](docs/debian-repository.md)
 
 ## download
 
@@ -32,8 +33,9 @@ get the latest build from [GitHub Releases](https://github.com/debarkak/foliopdf
   or the AppImage for a portable app. a traditional `.tar.gz` archive is also
   available; it needs the system WebKitGTK 4.1 and GTK 3 libraries.
 
-Linux release packages are built on Ubuntu 22.04 and tested under Ubuntu 26.04
-with WSLg. they are not guaranteed to work on every distribution.
+Linux release packages are built on Ubuntu 22.04 and tested on native Ubuntu
+26.10. they are not guaranteed to work on every distribution. Debian-based users
+can also install and update FolioPDF through the [APT repository](https://debarkak.github.io/foliopdf/apt/).
 
 ## features
 
@@ -53,7 +55,10 @@ with WSLg. they are not guaranteed to work on every distribution.
 Windows installer and Linux AppImage builds can download signed updates from
 GitHub Releases. open Settings, check for a new version, then download it.
 installation requires a separate confirmation and closes the current tabs.
-portable Windows, Debian and tar archive builds offer the release download page.
+Debian packages check the same signed release feed and open the APT instructions
+when a new version is available. update that copy with `sudo apt update` and
+`sudo apt install --only-upgrade folio-pdf`. portable Windows and tar archive
+builds offer the release download page.
 there are no background update checks.
 
 version 1.0 needs a manual upgrade to 1.0.1 or newer to gain the updater.
@@ -64,15 +69,16 @@ requires Node.js 22.16+ (or a supported newer release), npm and Rust. native bui
 also need the [Tauri prerequisites](https://v2.tauri.app/start/prerequisites/):
 
 - Windows: MSVC x64/x86 build tools, one Windows SDK, and WebView2
-- Ubuntu / WSL2: WebKitGTK development libraries and a working WSLg session
+- Ubuntu: WebKitGTK development libraries. Native Ubuntu is used for Linux
+  packaging checks; WSL2 with WSLg can also run the desktop app.
 
 ```sh
 npm ci
 npm run tauri dev
 ```
 
-run Windows builds with the Windows toolchain and Linux builds inside WSL.
-use separate checkouts or build directories so their dependencies stay separate.
+run Windows builds with the Windows toolchain and Linux builds on Ubuntu or in
+WSL. use separate checkouts or build directories so their dependencies stay separate.
 
 for browser development:
 
@@ -98,6 +104,9 @@ the packaging workflows need `TAURI_SIGNING_PRIVATE_KEY` and, if the key is
 encrypted, `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` as repository secrets. keep a
 secure backup of the signing key outside the repository. the app embeds only
 the matching public key. update signatures are separate from Windows code signing.
+The APT repository uses a separate GPG signing key stored in
+`FOLIOPDF_APT_REPOSITORY_PRIVATE_KEY` and `FOLIOPDF_APT_REPOSITORY_PASSWORD`;
+commit only its public key.
 
 build Windows and Linux packages from the same version and commit. after collecting
 the installer, AppImage and their adjacent `.sig` files, generate the update feed:
@@ -108,9 +117,12 @@ node scripts/update-manifest.mjs output path/to/FolioPDF-setup.exe path/to/Folio
 
 the output directory must already exist. upload the packages and signatures to
 the matching `v<version>` GitHub release, and upload `output/latest.json` last,
-after checking both downloads. its URLs use the exact package filenames.
-publish only after an actual upgrade has been checked on Windows and Linux.
-never publish manifests from local test builds.
+after checking both downloads. its URLs use the exact package filenames. Run the
+Debian repository workflow with the successful Linux packages run ID before
+publishing the GitHub release, so the APT package and metadata are available
+before the updater feed advertises the version. The Pages workflow signs the
+repository metadata and deploys the setup page and public key. never publish
+manifests from local test builds.
 
 ## current limits
 

@@ -4,7 +4,7 @@ FolioPDF uses TypeScript, Vite, PDF.js and Tauri. The frontend owns tabs, docume
 
 ## Run locally
 
-Use Node.js 22 and Rust stable. Windows needs MSVC, a Windows SDK and WebView2. Linux needs WebKitGTK 4.1 and the Tauri system dependencies. Under WSL, use WSLg for native window checks and a checkout inside the Linux filesystem.
+Use Node.js 22 and Rust stable. Windows needs MSVC, a Windows SDK and WebView2. Linux needs WebKitGTK 4.1 and the Tauri system dependencies. Native Ubuntu is used for Linux packaging checks; under WSL, use WSLg for native window checks and a checkout inside the Linux filesystem.
 
 ```sh
 npm ci
@@ -23,4 +23,4 @@ Browser tests use the browser file picker. Check desktop integrations in a separ
 
 ## Packaging
 
-Keep the npm, Cargo and Tauri versions aligned. The Windows and Linux packaging workflows build from the same source revision. Follow the [update publishing steps](../README.md#preparing-updates) to publish signed packages and the updater manifest.
+Keep the npm, Cargo and Tauri versions aligned. The Windows and Linux packaging workflows build from the same source revision. The Debian repository workflow publishes signed APT metadata from the successful Linux package artifact. Follow the [update publishing steps](../README.md#preparing-updates) to publish signed packages and the updater manifest.

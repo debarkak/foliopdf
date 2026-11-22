@@ -15,13 +15,13 @@ Use the toolbar to switch between vertical and horizontal reading or fit the pag
 
 Use the text and highlight tools to annotate a PDF. Choose **Save edited copy** to write your changes to a new file. Use the printer icon to open the print dialog.
 
-Under **Settings → About & updates**, choose **Check for updates**. Windows installer and Linux AppImage builds can download and install signed updates. Other builds send you to the downloads page. Save your work before installing an update, which restarts the app.
+Under **Settings → About & updates**, choose **Check for updates**. Windows installer and Linux AppImage builds can download and install signed updates. Debian packages check for updates too, then open the APT instructions; use `sudo apt update` and `sudo apt install --only-upgrade folio-pdf` to install one. Portable builds send you to the downloads page. Save your work before installing an update, which restarts the app.
 
 See the [downloads and platform requirements](../README.md#download).
 
 ## Default PDF app
 
-On Windows, install FolioPDF using the setup installer. In **Settings → Apps → Default apps**, search for `.pdf` and select FolioPDF. On Linux, install the Debian package and select FolioPDF under **Open With** in your file manager. An AppImage needs desktop integration to appear in that list.
+On Windows, install FolioPDF using the setup installer. In **Settings → Apps → Default apps**, search for `.pdf` and select FolioPDF. On Linux, install the Debian package from the [APT repository](debian-repository.md) and select FolioPDF under **Open With** in your file manager. An AppImage needs desktop integration to appear in that list.
 
 ## Home tabs, history, and document details
 

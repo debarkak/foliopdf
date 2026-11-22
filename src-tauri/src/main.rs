@@ -17,6 +17,12 @@ fn update_install_supported() -> bool {
 }
 
 #[tauri::command]
+fn update_apt_supported() -> bool {
+    use tauri::utils::{config::BundleType, platform::bundle_type};
+    matches!(bundle_type(), Some(BundleType::Deb))
+}
+
+#[tauri::command]
 fn enable_backdrop(window: tauri::WebviewWindow) -> bool {
     #[cfg(windows)]
     {
@@ -127,7 +133,7 @@ fn main() {
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![update_install_supported, enable_backdrop, startup_pdf_info, read_startup_pdf, recent_pdfs, read_recent_pdf])
+        .invoke_handler(tauri::generate_handler![update_install_supported, update_apt_supported, enable_backdrop, startup_pdf_info, read_startup_pdf, recent_pdfs, read_recent_pdf])
         .run(tauri::generate_context!())
         .expect("failed to start foliopdf");
 }

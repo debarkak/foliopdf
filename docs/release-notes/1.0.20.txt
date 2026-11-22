@@ -1,0 +1,6 @@
+FolioPDF 1.0.20
+
+- Added a signed APT repository for Ubuntu and compatible Debian-based distributions.
+- Debian package users can check for updates in FolioPDF and open APT upgrade instructions.
+- Moved Linux packaging checks to native Ubuntu after the development environment moved from WSL.
+- Continued providing Windows x64 installer and portable builds.

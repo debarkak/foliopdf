@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#1f2a23">
+  <title>Install FolioPDF with APT</title>
+  <style>
+    :root { color-scheme: light dark; font: 16px/1.65 system-ui, sans-serif; background: #f4f6f2; color: #202923; }
+    body { max-width: 820px; margin: 0 auto; padding: 5vh 20px; }
+    main { padding: clamp(22px, 5vw, 48px); border: 1px solid #ccd5cb; border-radius: 22px; background: #fff; }
+    h1 { margin: 0; font-size: clamp(2rem, 6vw, 3rem); letter-spacing: -.045em; }
+    h2 { margin-top: 2rem; font-size: 1.2rem; }
+    p { max-width: 66ch; }
+    pre { overflow-x: auto; padding: 16px; border: 1px solid #d8dfd7; border-radius: 12px; background: #f3f6f2; font: .9rem/1.6 ui-monospace, monospace; }
+    code { font-family: ui-monospace, monospace; }
+    a { color: #426b4c; }
+    .fingerprint { overflow-wrap: anywhere; font: .9rem/1.6 ui-monospace, monospace; }
+    @media (prefers-color-scheme: dark) { :root { background: #111611; color: #e3e9e1; } main { background: #1c241e; border-color: #364338; } pre { background: #151b16; border-color: #344136; } a { color: #a8d6ac; } }
+  </style>
+</head>
+<body>
+  <main>
+    <p><a href="../">FolioPDF</a> / APT repository</p>
+    <h1>Install FolioPDF with APT</h1>
+    <p>The signed repository provides FolioPDF for 64-bit Debian-based distributions, including Ubuntu. It is currently published for <code>amd64</code>.</p>
+
+    <h2>1. Add the signing key</h2>
+    <pre><code>sudo install -d -m 0755 /etc/apt/keyrings
+curl -fsSL https://debarkak.github.io/foliopdf/apt/foliopdf-archive-keyring.asc \
+  | sudo tee /etc/apt/keyrings/foliopdf-archive-keyring.asc &gt; /dev/null</code></pre>
+
+    <h2>2. Add the repository</h2>
+    <pre><code>echo 'deb [arch=amd64 signed-by=/etc/apt/keyrings/foliopdf-archive-keyring.asc] https://debarkak.github.io/foliopdf/apt stable main' \
+  | sudo tee /etc/apt/sources.list.d/foliopdf.list
+sudo apt update</code></pre>
+
+    <h2>3. Install and update</h2>
+    <pre><code>sudo apt install folio-pdf
+
+# Later, install available FolioPDF updates with:
+sudo apt update &amp;&amp; sudo apt install --only-upgrade folio-pdf</code></pre>
+    <p>FolioPDF can check for a newer version under <b>Settings → About &amp; updates</b>. Debian packages use APT to install updates, so the app opens this page with the upgrade command when an update is available.</p>
+
+    <h2>Signing key</h2>
+    <p class="fingerprint">Fingerprint: 5C5A 441A 00BE 0B34 A6E9 F145 2C68 04E1 5F8B A03C</p>
+    <p><a href="foliopdf-archive-keyring.asc">Download the public key</a> · <a href="https://github.com/debarkak/foliopdf/releases">Release downloads</a></p>
+  </main>
+</body>
+</html>

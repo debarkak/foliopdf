@@ -1,0 +1,72 @@
+name: Debian repository
+
+on:
+  workflow_dispatch:
+    inputs:
+      linux_run_id:
+        description: Successful Linux packages workflow run ID
+        required: true
+        type: string
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-22.04
+    permissions:
+      actions: read
+      contents: read
+      id-token: write
+      pages: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
+        with:
+          name: linux-packages
+          github-token: ${{ github.token }}
+          run-id: ${{ inputs.linux_run_id }}
+          repository: ${{ github.repository }}
+          path: ${{ runner.temp }}/linux-packages
+      - name: Install repository tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y apt-utils dpkg-dev
+      - name: Prepare signed APT repository and Pages site
+        env:
+          FOLIOPDF_APT_SIGNING_FINGERPRINT: 5C5A441A00BE0B34A6E9F1452C6804E15F8BA03C
+          FOLIOPDF_APT_SIGNING_PRIVATE_KEY: ${{ secrets.FOLIOPDF_APT_REPOSITORY_PRIVATE_KEY }}
+          FOLIOPDF_APT_SIGNING_PASSWORD: ${{ secrets.FOLIOPDF_APT_REPOSITORY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          version=$(node -p 'require("./package.json").version')
+          mapfile -t packages < <(find "$RUNNER_TEMP/linux-packages" -type f -name '*.deb' -print)
+          if [[ ${#packages[@]} -ne 1 ]]; then
+            echo "Expected one Debian package in the Linux artifact; found ${#packages[@]}" >&2
+            exit 1
+          fi
+          mkdir -p "$RUNNER_TEMP/gnupg" "$RUNNER_TEMP/site"
+          chmod 700 "$RUNNER_TEMP/gnupg"
+          export GNUPGHOME="$RUNNER_TEMP/gnupg"
+          printf '%s' "$FOLIOPDF_APT_SIGNING_PRIVATE_KEY" | gpg --batch --import
+          printf '%s' "$FOLIOPDF_APT_SIGNING_PASSWORD" > "$RUNNER_TEMP/apt-key-password"
+          chmod 600 "$RUNNER_TEMP/apt-key-password"
+          FOLIOPDF_APT_PASSPHRASE_FILE="$RUNNER_TEMP/apt-key-password" \
+            scripts/build-apt-repository.sh "${packages[0]}" "$RUNNER_TEMP/site" "$version"
+          mkdir -p "$RUNNER_TEMP/site/apt"
+          cp docs/apt/foliopdf-archive-keyring.asc docs/apt/index.html "$RUNNER_TEMP/site/apt/"
+          cp docs/site/index.html "$RUNNER_TEMP/site/index.html"
+          gpg --batch --verify "$RUNNER_TEMP/site/apt/dists/stable/InRelease"
+          rm -rf "$RUNNER_TEMP/gnupg" "$RUNNER_TEMP/apt-key-password"
+      - uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
+        with:
+          enablement: true
+      - uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v4.0.0
+        with:
+          path: ${{ runner.temp }}/site
+      - id: deployment
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1

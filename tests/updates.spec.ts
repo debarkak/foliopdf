@@ -1,16 +1,21 @@
 import { expect, test, type Page } from '@playwright/test';
 
-async function desktop(page: Page, options: { current?: boolean; portable?: boolean; checkFails?: boolean; downloadFails?: boolean } = {}) {
+async function desktop(page: Page, options: { current?: boolean; portable?: boolean; apt?: boolean; checkFails?: boolean; downloadFails?: boolean } = {}) {
   await page.addInitScript(options => {
     const host = window as unknown as Record<string, unknown>;
     host.isTauri = true;
     host.calls = [];
+    host.openedUrls = [];
     host.__TAURI_INTERNALS__ = {
       transformCallback: () => 1,
-      invoke: async (command: string) => {
+      invoke: async (command: string, args?: { url?: string }) => {
         (host.calls as string[]).push(command);
         if (command === 'plugin:app|version') return '1.0.1';
+        if (command === 'update_apt_supported') return Boolean(options.apt);
         if (command === 'update_install_supported') return !options.portable;
+        if (command === 'plugin:opener|open_url') {
+          (host.openedUrls as string[]).push(args?.url ?? '');
+        }
         if (command === 'plugin:updater|check') {
           if (options.checkFails) throw new Error('offline');
           return options.current ? null : { rid: 1, currentVersion: '1.0.1', version: '1.0.2', body: '<b>Release notes</b>', rawJson: {} };
@@ -66,6 +71,16 @@ test('portable copies offer downloads instead of an installer', async ({ page })
   await desktop(page, { portable: true });
   await page.getByRole('button', { name: 'Open downloads' }).click();
   await expect.poll(() => page.evaluate(() => (window as unknown as { calls: string[] }).calls)).toContain('plugin:opener|open_url');
+  expect(await page.evaluate(() => (window as unknown as { calls: string[] }).calls)).not.toContain('plugin:updater|download');
+});
+
+test('Debian packages direct updates to APT instructions', async ({ page }) => {
+  await desktop(page, { apt: true });
+  await expect(page.locator('#update-status')).toContainText('Use APT to install the update.');
+  await page.getByRole('button', { name: 'Open APT instructions' }).click();
+  await expect.poll(() => page.evaluate(() => (window as unknown as { openedUrls: string[] }).openedUrls)).toEqual([
+    'https://debarkak.github.io/foliopdf/apt/',
+  ]);
   expect(await page.evaluate(() => (window as unknown as { calls: string[] }).calls)).not.toContain('plugin:updater|download');
 });
 

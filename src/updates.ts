@@ -21,6 +21,7 @@ const gesturePage = document.querySelector<HTMLElement>('#settings-gestures-page
 const aboutPage = document.querySelector<HTMLElement>('#settings-about-page')!;
 let update: Update | null = null;
 let canInstall = false;
+let aptSupported = false;
 let downloaded = false;
 let busy = false;
 
@@ -77,15 +78,17 @@ checkButton.addEventListener('click', async () => {
   try {
     await release();
     if (!isTauri()) { status.textContent = 'Updates are available in the desktop app.'; return; }
+    aptSupported = await invoke<boolean>('update_apt_supported');
     canInstall = await invoke<boolean>('update_install_supported');
     update = await check({ timeout: 15000 });
     if (!update) { status.textContent = 'You’re up to date.'; return; }
     status.textContent = `FolioPDF ${update.version} is available.`;
     notes.textContent = update.body || 'No release notes provided.';
     notes.hidden = false;
-    action.textContent = canInstall ? 'Download update' : 'Open downloads';
+    action.textContent = aptSupported ? 'Open APT instructions' : canInstall ? 'Download update' : 'Open downloads';
     action.hidden = false;
-    if (!canInstall) status.textContent += ' Download the new package to update this copy.';
+    if (aptSupported) status.textContent += ' Use APT to install the update.';
+    else if (!canInstall) status.textContent += ' Download the new package to update this copy.';
   } catch (error) {
     console.error('Update check failed:', error);
     status.textContent = 'Couldn’t check for updates. Check your connection and try again.';
@@ -94,6 +97,7 @@ checkButton.addEventListener('click', async () => {
 
 action.addEventListener('click', async () => {
   if (busy || !update) return;
+  if (aptSupported) { await openUrl('https://debarkak.github.io/foliopdf/apt/'); return; }
   if (!canInstall) { await openUrl('https://github.com/debarkak/foliopdf/releases/latest'); return; }
   working(true);
   try {
