@@ -56,7 +56,7 @@ jobs:
           printf '%s' "$FOLIOPDF_APT_SIGNING_PASSWORD" > "$RUNNER_TEMP/apt-key-password"
           chmod 600 "$RUNNER_TEMP/apt-key-password"
           FOLIOPDF_APT_PASSPHRASE_FILE="$RUNNER_TEMP/apt-key-password" \
-            scripts/build-apt-repository.sh "${packages[0]}" "$RUNNER_TEMP/site" "$version"
+            bash scripts/build-apt-repository.sh "${packages[0]}" "$RUNNER_TEMP/site" "$version"
           mkdir -p "$RUNNER_TEMP/site/apt"
           cp docs/apt/foliopdf-archive-keyring.asc docs/apt/index.html "$RUNNER_TEMP/site/apt/"
           cp docs/site/index.html "$RUNNER_TEMP/site/index.html"
